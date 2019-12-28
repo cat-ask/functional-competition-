@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta charset="UTF-8">
+	<title>콘테스트 참여하기</title>
+	<link rel="stylesheet" type="text/css" href="style.css">
+	<script src="app.js"></script>
+</head>
+<body>
+	<div id="top">
+		<div id="menu">
+			<button class="menu_button" id="free_b">자유곡선</button>
+			<button class="menu_button" id="squre_b">사각형</button>
+			<button class="menu_button" id="text_b">텍스트</button>
+			<button class="menu_button" id="sle_b">선택</button>
+			<button class="menu_button" id="play_b">재생 </button>
+			<button class="menu_button" id="stop_b">정지</button>
+			<button class="menu_button" id="alld_b">전체 삭제 </button>
+			<button class="menu_button" id="somed_b">선택 삭제</button>
+			<button class="menu_button" id="down_b">다운로드</button>
+		</div>
+		<div id="play_video"><p>동영상을 선택해주세요.</p><video id="video"></video></div>
+		<div id="menu_detail">
+			<div class="detail_b" id="color">
+				<p>색상</p>
+				<select name="color_v" id="color_v">
+					<option value="gray" selected>gray</option>
+					<option value="blue">blue</option>
+					<option value="green">green</option>
+					<option value="red">red</option>
+					<option value="yellow">yellow</option>
+				</select>
+			</div>
+			<div class="detail_b" id="line">
+				<p>선 두께</p>
+				<select name="thick_v" id="thick_v">
+					<option value="3" selected>3px</option>
+					<option value="5">5px</option>
+					<option value="10">10px</option>
+				</select>
+			</div>
+			<div class="detail_b" id="text_size">
+				<p>글자 크기</p>
+				<select name="text_size" id="text_size_v">
+					<option value="16">16px</option>
+					<option value="18">18px</option>
+					<option value="24">24px</option>
+					<option value="32">32px</option>
+				</select>
+			</div>
+		</div>
+	</div>
+	<div id="bottom">
+		<div id="play_time">
+			<div class="left">
+				<p id="now_t">00 : 00 : 00 : 00</p>/<p id="end_t"> 00 : 00 : 00 : 00</p>
+			</div>
+			<div class="right">
+				시작시간 : <p id="start_t">00 : 00 : 00 : 00</p>
+				유지시간 : <p id="keep_t">00 : 00 : 00 : 00</p>
+			</div>
+		</div>
+		<div id="layer_list"></div>
+		<div id="movie_list">
+			<div class="play_list" id="movie1"><img src="movie/movie1-cover.jpg" alt="movie-cover"></div>
+			<div class="play_list" id="movie2"><img src="movie/movie2-cover.jpg" alt="movie-cover"></div>
+			<div class="play_list" id="movie3"><img src="movie/movie3-cover.jpg" alt="movie-cover"></div>
+			<div class="play_list" id="movie4"><img src="movie/movie4-cover.jpg" alt="movie-cover"></div>
+			<div class="play_list" id="movie5"><img src="movie/movie5-cover.jpg" alt="movie-cover"></div>
+		</div>
+	</div>
+</body>
+</html>
