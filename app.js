@@ -13,6 +13,7 @@ window.onload=function(){
 	let layer_zindex = Array();
 	let layer_zindex_max = 5;
 	let canvas_id = 0;
+	let layer_click_e = new Event('click');
 	
 	for(let i=1; i<6;i++) document.querySelector("#movie"+i).addEventListener("click",movie_set);
 	
@@ -22,6 +23,7 @@ window.onload=function(){
 		canvas_all_del();
 		style_change("all",18,menu,"#6B747D");
 		layer_list.innerHTML="";
+		if(document.querySelector("#movie_layer"))document.querySelector("#layer_list").removeChild(document.querySelector("#movie_layer"));
 		add_layer("movie_layer","#layer_list");
 		movie.addEventListener("loadedmetadata",function(){
 			endtime = movie.duration;
@@ -120,129 +122,202 @@ window.onload=function(){
 	function select(type){
 		if(document.querySelector("#canvas"+canvas_num)){
 			let cx,cy;
+			let sx,sy;
 			let canvas,ctx;
+			let fx,fy,sw,sh,squre_x,squre_y;
 			style_change("all",18,menu,"#6B747D");
 			style_change("along",7,menu,"#0082C2");
-			console.log(now_b);
 			if(now_b == "select"){
 				let select_ok = 0;
 				movie_area.onmousedown = function select_move(e){
-					console.log(e);
 					if(!select_ok && now_b == "select"){
 						cx = e.clientX-movie_area.getBoundingClientRect().x;
 						cy = e.clientY-movie_area.getBoundingClientRect().y;
 						if(select_id && canvas_id> -1){
+							//이전에 선택된 도형 테두리 지우기 (테두리 그리느라 지워짐)
 							let mx,my;
 							canvas = document.querySelector("#"+select_id);
 							ctx = canvas.getContext("2d");
 							ctx.clearRect(0,0,canvas.width,canvas.height);
-							ctx.strokeStyle = drow_path[canvas_id][3];
-							ctx.lineWidth = drow_path[canvas_id][4];
-							for(let h=1;h<=drow_path[canvas_id][2];h++){
-								ctx.beginPath();
-								if(h == 1){
+							
+							if(drow_path[canvas_id][5] == "line"){
+								ctx.strokeStyle = drow_path[canvas_id][3];
+								ctx.lineWidth = drow_path[canvas_id][4];
+								for(let h=1;h<=drow_path[canvas_id][2];h++){
+									ctx.beginPath();
+									if(h == 1){
+										squre_x = drow_path[canvas_id][1][h][0];
+										squre_y = drow_path[canvas_id][1][h][1];
+									}
+									ctx.moveTo(sx,sy);
 									sx = drow_path[canvas_id][1][h][0];
 									sy = drow_path[canvas_id][1][h][1];
+									ctx.lineTo(sx,sy);
+									ctx.stroke();
 								}
-								ctx.moveTo(sx,sy);
-								sx = drow_path[canvas_id][1][h][0];
-								sy = drow_path[canvas_id][1][h][1];
-								ctx.lineTo(sx,sy);
-								ctx.stroke();
-								layer_detail(1,"not_change");
+							}else if(drow_path[canvas_id][5] == "squre"){
+								ctx.fillStyle = drow_path[canvas_id][3];
+								fx = drow_path[canvas_id][1][0];
+								fy = drow_path[canvas_id][1][1];
+								sw = drow_path[canvas_id][1][2];
+								sh = drow_path[canvas_id][1][3];
+								ctx.fillRect(fx,fy,sw,sh);
+								squre_x = cx - fx;
+								squre_y = cy - fy;
 							}
+							layer_detail(1,"not_change");
 						}
-
+						console.log(drow_path);
 						for(let i=drow_path.length-1;i>=0;i--){
-							for(let k = 1; k<=drow_path[i][2];k++){
-								if(cx + 3 >= Math.floor(drow_path[i][1][k][0]) && cx -3 <= Math.floor(drow_path[i][1][k][0])){
-									if(cy + 3 >= Math.floor(drow_path[i][1][k][1]) && cy -3 <= Math.floor(drow_path[i][1][k][1])){
+							if(drow_path[i][5] == "squre"){
+								fx = drow_path[canvas_id][1][0];
+								fy = drow_path[canvas_id][1][1];
+								sw = drow_path[canvas_id][1][2];
+								sh = drow_path[canvas_id][1][3];
+								squre_x = cx - fx;
+								squre_y = cy - fy;
 
-										canvas_id = i;
-										select_id = drow_path[i][0].substring(1,drow_path[i][0].length);
-										for(let i=0; i<layer_num-1;i++) if(layer_array[i][0] == document.querySelector("#"+select_id+"_layer").firstChild.id) layer_detail(i,"change");
-										canvas = document.querySelector("#"+select_id);
-										ctx = canvas.getContext("2d");
-										let sx,sy;
-										ctx.strokeStyle = "#33CFD1";
-										ctx.lineWidth = drow_path[i][4]+3;
-										select_num[0]=i;
-										select_num[1]=k;
-										for(let h=1;h<=drow_path[i][2];h++){
-											ctx.beginPath();
-											if(h == 1){
+								if((cx >= fx && cx <= (fx+sw)) && (cy >= fy && cy <= (cy+sh))){
+									canvas_id = i;
+									select_id = drow_path[i][0].substring(1,drow_path[i][0].length);
+									for(let i=0; i<layer_num-1;i++) if(layer_array[i][0] == document.querySelector("#"+select_id+"_layer").firstChild.id) layer_detail(i,"change");
+									canvas = document.querySelector("#"+select_id);
+									ctx = canvas.getContext("2d");
+									
+									select_num[0]=cx;
+									select_num[1]=cy;
+
+									//선택 테두리
+									ctx.fillStyle = "#33CFD1";
+									fx = drow_path[canvas_id][1][0];
+									fy = drow_path[canvas_id][1][1];
+									sw = drow_path[canvas_id][1][2];
+									sh = drow_path[canvas_id][1][3];
+									ctx.fillRect(fx-3,fy-3,sw+6,sh+6);
+
+									//선택된 도형 다시 그리기 (테두리 그리느라 지워짐)
+									ctx.fillStyle = drow_path[canvas_id][3];
+									fx = drow_path[canvas_id][1][0];
+									fy = drow_path[canvas_id][1][1];
+									sw = drow_path[canvas_id][1][2];
+									sh = drow_path[canvas_id][1][3];
+									ctx.fillRect(fx,fy,sw,sh);
+
+									//공통적용사항
+									select_ok = 1;
+									break;
+								}
+							}
+							for(let k = 1; k<=drow_path[i][2];k++){
+								if(drow_path[i][5] == "line"){
+									if(cx + drow_path[canvas_id][4] >= Math.floor(drow_path[i][1][k][0]) && cx - drow_path[canvas_id][4] <= Math.floor(drow_path[i][1][k][0])){
+										if(cy + drow_path[canvas_id][4] >= Math.floor(drow_path[i][1][k][1]) && cy - drow_path[canvas_id][4] <= Math.floor(drow_path[i][1][k][1])){
+											canvas_id = i;
+											select_id = drow_path[i][0].substring(1,drow_path[i][0].length);
+											for(let i=0; i<layer_num-1;i++) if(layer_array[i][0] == document.querySelector("#"+select_id+"_layer").firstChild.id) layer_detail(i,"change");
+											canvas = document.querySelector("#"+select_id);
+											ctx = canvas.getContext("2d");
+											
+											select_num[0]=i;
+											select_num[1]=k;
+											//선택 테두리
+											ctx.strokeStyle = "#33CFD1";
+											ctx.lineWidth = drow_path[i][4]+3;
+											for(let h=1;h<=drow_path[i][2];h++){
+												ctx.beginPath();
+												if(h == 1){
+													sx = drow_path[i][1][h][0];
+													sy = drow_path[i][1][h][1];
+												}
+												ctx.moveTo(sx,sy);
 												sx = drow_path[i][1][h][0];
 												sy = drow_path[i][1][h][1];
+												ctx.lineTo(sx,sy);
+												ctx.stroke();
 											}
-											ctx.moveTo(sx,sy);
-											sx = drow_path[i][1][h][0];
-											sy = drow_path[i][1][h][1];
-											ctx.lineTo(sx,sy);
-											ctx.stroke();
-										}
-										ctx.strokeStyle = drow_path[i][3];
-										ctx.lineWidth = drow_path[i][4];
-										for(let h=1;h<=drow_path[i][2];h++){
-											ctx.beginPath();
-											if(h == 1){
+
+											//선택된 도형 다시 그리기 (테두리 그리느라 지워짐)
+											ctx.strokeStyle = drow_path[i][3];
+											ctx.lineWidth = drow_path[i][4];
+											for(let h=1;h<=drow_path[i][2];h++){
+												ctx.beginPath();
+												if(h == 1){
+													sx = drow_path[i][1][h][0];
+													sy = drow_path[i][1][h][1];
+												}
+												ctx.moveTo(sx,sy);
 												sx = drow_path[i][1][h][0];
 												sy = drow_path[i][1][h][1];
+												ctx.lineTo(sx,sy);
+												ctx.stroke();
 											}
-											ctx.moveTo(sx,sy);
-											sx = drow_path[i][1][h][0];
-											sy = drow_path[i][1][h][1];
-											ctx.lineTo(sx,sy);
-											ctx.stroke();
+											//공통적용사항
 											select_ok = 1;
+											break;
 										}
-										break;
 									}
 								}
 							}
 						}
 					}
 
-					if(select_ok && now_b == "select" && canvas_id && select_id>-1){
-						console.log(1);
+					if(select_ok && now_b == "select" && canvas_id > -1 && select_id){
 						for (let i=drow_path.length-1;i>=0;i--) document.querySelector(drow_path[i][0]).style.zIndex = document.querySelector(drow_path[i][0]).style.zIndex - 1;
 						document.querySelector("#"+select_id).style.zIndex = layer_zindex_max+10;
 						document.querySelector("#"+select_id).onmousemove = function(e){
 							if(select_ok){
-								let mx,my;
 								canvas = document.querySelector("#"+select_id);
 								ctx = canvas.getContext("2d");
 								ctx.clearRect(0,0,canvas.width,canvas.height);
-								mx = drow_path[select_num[0]][1][select_num[1]][0] - (e.clientX-movie_area.getBoundingClientRect().x);
-								my = drow_path[select_num[0]][1][select_num[1]][1] - (e.clientY-movie_area.getBoundingClientRect().y);
+								let mx,my;
+
 								ctx.strokeStyle = "#33CFD1";
-								ctx.lineWidth = drow_path[canvas_id][4]+3;
-								for(let h=1;h<=drow_path[canvas_id][2];h++){
-									ctx.beginPath();
-									if(h == 1){
+								if(drow_path[canvas_id][5] == "line"){
+									mx = Math.floor(drow_path[select_num[0]][1][select_num[1]][0] - (e.clientX-movie_area.getBoundingClientRect().x));
+									my = Math.floor(drow_path[select_num[0]][1][select_num[1]][1] - (e.clientY-movie_area.getBoundingClientRect().y));
+									ctx.lineWidth = drow_path[canvas_id][4]+3;
+									for(let h=1;h<=drow_path[canvas_id][2];h++){
+										ctx.beginPath();
+										if(h == 1){
+											sx = drow_path[canvas_id][1][h][0] - mx;
+											sy = drow_path[canvas_id][1][h][1] - my;
+										}
+										ctx.moveTo(sx,sy);
 										sx = drow_path[canvas_id][1][h][0] - mx;
 										sy = drow_path[canvas_id][1][h][1] - my;
+										ctx.lineTo(sx,sy);
+										ctx.stroke();
 									}
-									ctx.moveTo(sx,sy);
-									sx = drow_path[canvas_id][1][h][0] - mx;
-									sy = drow_path[canvas_id][1][h][1] - my;
-									ctx.lineTo(sx,sy);
-									ctx.stroke();
-								}
-								ctx.strokeStyle = drow_path[canvas_id][3];
-								ctx.lineWidth = drow_path[canvas_id][4];
-								for(let h=1;h<=drow_path[canvas_id][2];h++){
-									ctx.beginPath();
-									if(h == 1){
+									ctx.strokeStyle = drow_path[canvas_id][3];
+									ctx.lineWidth = drow_path[canvas_id][4];
+									for(let h=1;h<=drow_path[canvas_id][2];h++){
+										ctx.beginPath();
+										if(h == 1){
+											sx = drow_path[canvas_id][1][h][0] - mx;
+											sy = drow_path[canvas_id][1][h][1] - my;
+										}
+										ctx.moveTo(sx,sy);
 										sx = drow_path[canvas_id][1][h][0] - mx;
 										sy = drow_path[canvas_id][1][h][1] - my;
+										ctx.lineTo(sx,sy);
+										ctx.stroke();
+										drow_path[canvas_id][1][h][0] = sx;
+										drow_path[canvas_id][1][h][1] = sy;
 									}
-									ctx.moveTo(sx,sy);
-									sx = drow_path[canvas_id][1][h][0] - mx;
-									sy = drow_path[canvas_id][1][h][1] - my;
-									ctx.lineTo(sx,sy);
-									ctx.stroke();
-									drow_path[canvas_id][1][h][0] = sx;
-									drow_path[canvas_id][1][h][1] = sy;
+								}else if(drow_path[canvas_id][5] == "squre"){
+									mx = Math.floor(select_num[0] - (e.clientX-movie_area.getBoundingClientRect().x));
+									my = Math.floor(select_num[1] - (e.clientY-movie_area.getBoundingClientRect().y));
+
+									fx = fx - mx;
+									fy = fy - my;
+									drow_path[canvas_id][1][0] = fx;
+									drow_path[canvas_id][1][1] = fy;
+									//선택 테두리
+									ctx.fillStyle = "#33CFD1";
+									ctx.fillRect(fx+3,fy+3,sw+6,sh+6);
+
+									//선택된 도형 다시 그리기 (테두리 그리느라 지워짐)
+									ctx.fillRect(fx,fy,sw,sh);
 								}
 							}
 						}
@@ -262,31 +337,43 @@ window.onload=function(){
 						ch = e.y;
 						if( now_b == "select"){
 							canvas_size = document.querySelector("#canvas"+canvas_num).getBoundingClientRect();
-							if((cw > (canvas_size.x+canvas_size.width) || cw < canvas_size.x) || (ch > (canvas_size.y+canvas_size.height) || cw < canvas_size.y)){
+							let layer_size =  document.querySelector("#layer_list").getBoundingClientRect();
+							if(((cw > (layer_size.x+layer_size.width) || cw < layer_size.x) || (ch > (layer_size.y+layer_size.height) || ch < layer_size.y))&&((cw > (canvas_size.x+canvas_size.width) || cw < canvas_size.x) || (ch > (canvas_size.y+canvas_size.height) || ch < canvas_size.y))){
 								//canvas에 적용
 								if(select_id){
-									let mx,my;
 									canvas = document.querySelector("#"+select_id);
 									ctx = canvas.getContext("2d");
 									ctx.clearRect(0,0,canvas.width,canvas.height);
 									ctx.strokeStyle = drow_path[canvas_id][3];
-									ctx.lineWidth = drow_path[canvas_id][4];
-									for(let h=1;h<=drow_path[canvas_id][2];h++){
-										ctx.beginPath();
-										if(h == 1){
+
+									if(drow_path[canvas_id][5] == "line"){
+										ctx.lineWidth = drow_path[canvas_id][4];
+										for(let h=1;h<=drow_path[canvas_id][2];h++){
+											ctx.beginPath();
+											if(h == 1){
+												sx = drow_path[canvas_id][1][h][0];
+												sy = drow_path[canvas_id][1][h][1];
+											}
+											ctx.moveTo(sx,sy);
 											sx = drow_path[canvas_id][1][h][0];
 											sy = drow_path[canvas_id][1][h][1];
+											ctx.lineTo(sx,sy);
+											ctx.stroke();
 										}
-										ctx.moveTo(sx,sy);
-										sx = drow_path[canvas_id][1][h][0];
-										sy = drow_path[canvas_id][1][h][1];
-										ctx.lineTo(sx,sy);
-										ctx.stroke();
+									}else if(drow_path[canvas][5] == "line"){
+										fx = drow_path[canvas_id][1][0];
+										fy = drow_path[canvas_id][1][1];
+										sw = drow_path[canvas_id][1][2];
+										sh = drow_path[canvas_id][1][3];
+										ctx.fillRect(fx,fy,sw,sh);
+										squre_x = cx - fx;
+										squre_y = cy - fy;
 									}
 								}
 								layer_detail(1,"not_change");
 								select_id = 0;
 								select_ok = 0;
+								canvas_id = -1;
 								style_change("all",18,menu,"#6B747D");
 								now_b = "";
 							}
@@ -366,6 +453,7 @@ window.onload=function(){
 							drow_path[drow_path_id][2] = path_num;
 							drow_path[drow_path_id][3] = detail("color");
 							drow_path[drow_path_id][4] = detail("line");
+							drow_path[drow_path_id][5] = "line";
 							terminal("free_again");
 						}	
 					}
@@ -403,6 +491,8 @@ window.onload=function(){
 						canvas.width = canvas.offsetWidth;
 						canvas.height = canvas.offsetHeight;
 						drawing = true;
+						drow_path_id++;
+						drow_path.push(Array("#canvas"+canvas_num,Array(1),1,"",1));
 					}
 					//사각형 그리기
 					if(drawing && now_b == "squre"){
@@ -430,6 +520,11 @@ window.onload=function(){
 							if(!end && now_b == "squre"){
 								ctx.fillStyle = color;
 								ctx.fillRect(fx,fy,x-fx,y-fy);
+								drow_path[drow_path_id][1] = Array(fx,fy,x-fx,y-fy);
+								drow_path[drow_path_id][2] = path_num;
+								drow_path[drow_path_id][3] = detail("color");
+								drow_path[drow_path_id][4] = "nothing";
+								drow_path[drow_path_id][5] = "squre";
 								drawing = false;
 								terminal("squre_again");
 							}
@@ -543,7 +638,7 @@ window.onload=function(){
 				now_b = "";
 				if(select_id){
 					let mx,my;
-					let canvas = document.querySelector(select_id);
+					let canvas = document.querySelector("#"+select_id);
 					let ctx = canvas.getContext("2d");
 					ctx.clearRect(0,0,canvas.width,canvas.height);
 					ctx.strokeStyle = drow_path[canvas_id][3];
@@ -571,11 +666,15 @@ window.onload=function(){
 		if(document.querySelector("input"))movie_area.removeChild(document.querySelector("input"));
 		for(let i=1;i<=canvas_num;i++) movie_area.removeChild(document.querySelector("#canvas"+i));
 		for(let i=1;i<=canvas_num;i++) document.querySelector("#layer_list").removeChild(document.querySelector("#canvas"+i+"_layer"));
-		canvas_num=layer_num=0;
+		canvas_num=layer_num=canvas_id=0;
 		layer_array.splice(0,layer_array.length);
 		drow_path.splice(0,drow_path.length);
 		layer_zindex.splice(0,layer_zindex.length);
-		console.log(layer_array,drow_path,layer_zindex);
+		layer_zindex_max=5;
+		select_id = "";
+		layer_list = (0,layer_array.length);
+		path_num = 0;
+		drow_path_id = -1;
 	}
 
 	//canvas 일부삭제
@@ -587,23 +686,37 @@ window.onload=function(){
 			drow_path.splice(canvas_id,1);
 			layer_zindex.splice(canvas_id,1);
 			document.querySelector("#layer_list").removeChild(document.querySelector("#"+id+"_layer"));
-			console.log(layer_array,drow_path,layer_zindex);
 			style_change("all",18,menu,"#6B747D");
 			now_b = "";
+			for(let i=canvas_id+1;i<layer_array.length+1;i++){
+				document.querySelector("#canvas"+(i+1)+"_layer").removeChild(document.querySelector("#layer"+i+"_time"));
+				let id_time = "layer"+i+"_time";
+				let layer_add = document.createElement("div");
+				layer_add.className = "layer_time";
+				layer_add.setAttribute("id",id_time);
+				document.querySelector("#canvas"+(i+1)+"_layer").prepend(layer_add);
+				console.log("#layer"+i+"_time",document.querySelector("#layer"+i+"_time"));
+				document.querySelector("#layer"+i+"_time").addEventListener("click",function(){layer_detail(i-1, "change");});
+				document.querySelector("#layer"+i+"_time").setAttribute("id","layer"+(i-1)+"_time");
+				layer_array[i-1][0] = "layer"+(i-1)+"_time";
+				layer_zindex[i-1] = layer_zindex[i-1]--;
+			}
+
 			for(let i=canvas_id+2;i<=canvas_num;i++){
-				document.querySelector("#canvas"+i+"_layer").setAttribute("id","#canvas"+(i-1)+"_layer");
-				document.querySelector("#canvas"+i).setAttribute("id","#canvas"+(i-1));
+				document.querySelector("#canvas"+i+"_layer").setAttribute("id","canvas"+(i-1)+"_layer");
+				document.querySelector("#canvas"+i).setAttribute("id","canvas"+(i-1));
 				drow_path[i-2][0] = "#canvas"+(i-1);
 			}
-			for(let i=canvas_id+1;i<layer_array.length+1;i++){
-				console.log(i);
-				document.querySelector("#layer"+i+"_time").setAttribute("id","#layer"+(i-1)+"_time");
-				layer_array[i-1][0] = "layer"+(i-1)+"_time";
-			}
+
 			select_id = 0;
 			select_ok = 0;
 			canvas_id = -1;
 			canvas_num--;
+			drow_path_id--;
+			layer_num--;
+			path_num = 0;
+			layer_zindex_max--;
+
 			document.querySelector("#start_t").innerHTML = "00 : 00 : 00 : 00";
 			document.querySelector("#keep_t").innerHTML = "00 : 00 : 00 : 00";
 		}
@@ -623,7 +736,6 @@ window.onload=function(){
 	//layer추가
 	function add_layer(id,append){
 		let layer_add = document.createElement("div");
-		
 		if(append == "#canvas"+canvas_num+"_layer"){
 			layer_add.className = "layer_time";
 			layer_array.push(Array(id,"00 : 00 : 00 : 00",time_set(endtime)));
@@ -634,24 +746,26 @@ window.onload=function(){
 
 		layer_add.setAttribute("id",id);
 		document.querySelector(append).prepend(layer_add);
-		if(append == "#canvas"+canvas_num+"_layer") document.querySelector("#"+id).addEventListener("click",function(){layer_detail((id.substring(5,(id.length-5))),"change");});
+		for(let i=0;i<layer_array.length;i++){
+			if(append == "#canvas"+canvas_num+"_layer" && i == layer_array.length-1){
+				document.querySelector("#"+id).addEventListener("click",function(){layer_detail(i, "change");});
+			}
+		}
 	}
 
 	//layer 선택 => 변경(시작시간/유지시간)
 	function layer_detail(index,type){
 		for(let i=0; i<layer_num-1;i++) document.querySelector("#"+layer_array[i][0]).style.backgroundColor = "#C8C8C8";
 		if(type == "change"){
+			console.log(index);
 			document.querySelector("#"+layer_array[index][0]).style.backgroundColor = "#17AFB1";
 			document.querySelector("#start_t").innerHTML = layer_array[index][1];
 			document.querySelector("#keep_t").innerHTML = layer_array[index][2];
-			if(now_b !== "select"){
-				now_b = "select";
-				style_change("all",18,menu,"#6B747D");
-				style_change("along",7,menu,"#0082C2");
-				select_ok = 0;
-				select();
-			}
-			let mx,my;
+			now_b = "select";
+			style_change("all",18,menu,"#6B747D");
+			style_change("along",7,menu,"#0082C2");
+			select_ok = 0;
+			let sx,sy;
 			let canvas,ctx;
 			if(select_id && canvas_id> -1){
 				let mx,my;
@@ -673,12 +787,10 @@ window.onload=function(){
 					ctx.stroke();
 				}
 			}
-
 			select_id = document.querySelector("#"+layer_array[index][0]).parentNode.id.substring(0,document.querySelector("#"+layer_array[index][0]).parentNode.id.length - 6);
 			for(let i=0; i <=drow_path.length-1; i++) if(drow_path[i][0] == "#"+select_id) canvas_id = i;
 			canvas = document.querySelector("#"+select_id);
 			ctx = canvas.getContext("2d");
-
 			ctx.clearRect(0,0,canvas.width,canvas.height);
 			ctx.strokeStyle ="#33CFD1";
 			ctx.lineWidth = drow_path[canvas_id][4]+3;
@@ -708,6 +820,7 @@ window.onload=function(){
 				ctx.lineTo(sx,sy);
 				ctx.stroke();
 			}
+			select();
 		}else{
 			document.querySelector("#start_t").innerHTML = "00 : 00 : 00 : 00";
 			document.querySelector("#keep_t").innerHTML = "00 : 00 : 00 : 00";
