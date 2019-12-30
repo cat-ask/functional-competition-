@@ -158,3 +158,23 @@
 	background-color: rgba(0,0,0,0);
 	width: 5px;
 }
+
+.layer_left{
+	width: 5%;
+	height: 100%;
+	display: inline-block;
+	cursor: w-resize;
+}
+
+.layer_center{
+	width: 90%;
+	height: 100%;
+	display: inline-block;
+}
+
+.layer_right{
+	width: 5%;
+	height: 100%;
+	display: inline-block;
+	cursor: w-resize;
+}
