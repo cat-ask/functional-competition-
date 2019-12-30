@@ -921,6 +921,7 @@ window.onload=function(){
 			document.querySelector("#"+select_layer+"_right").addEventListener("mousedown",function(e){right_layer(e);});
 		}
 	}
+
 	//canvas 테두리 지우기
 	function initialization(){
 		if(canvas_id > -1 && select_id){
@@ -969,29 +970,20 @@ window.onload=function(){
 			let cx = e.offsetX,mx;
 			if(!left_layer_move){
 				document.querySelector("#"+select_layer+"_left").addEventListener("mousemove",function(e){
-					if(!left_layer_move){
 						console.log(cx);
 						if(cx >= 0 && cx <= 810){
 							mx =(cx - e.offsetX);
 							layer_width.style.width =((layer_width.getBoundingClientRect().width) + mx)+"px";
 							document.querySelector("#"+select_layer+"_center").style.width = ((document.querySelector("#"+select_layer+"_center").getBoundingClientRect().width) + mx)+"px"
 							cx = e.offsetX;
-							layer_width.style.left =(parseInt(layer_width.style.left) - mx)+"px";
+							layer_width.style.left =cx+"px";
 						}
-					}
 					left_layer_move = 1;
 				});	
 			}
 			document.querySelector("#"+select_layer+"_left").addEventListener("mouseup",function(){
 				if(left_layer_move){
-					layer_width.style.left = cx+"px";
 					console.log("end!",left_layer_move);
-					for(let i=0; i<layer_num-1;i++){
-						document.querySelector("#"+(layer_array[i][0].substring(0,(layer_array[i][0].length-5)))+"_left").style.backgroundColor  = "#C8C8C8";
-						document.querySelector("#"+(layer_array[i][0].substring(0,(layer_array[i][0].length-5)))+"_center").style.backgroundColor= "#C8C8C8";
-						document.querySelector("#"+(layer_array[i][0].substring(0,(layer_array[i][0].length-5)))+"_right").style.backgroundColor = "#C8C8C8";
-						return;
-					}
 				}
 			});
 		}
