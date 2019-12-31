@@ -92,7 +92,6 @@
 
 .right{
 	width: 500px;
-	float: right;
 	display: inline-block;
 	margin-left: 50px;
 }
@@ -122,6 +121,7 @@
 }
 
 #layer_list{
+	position: relative;
 	width: 90%;
 	margin: 20px auto;
 }
@@ -177,4 +177,14 @@
 	height: 100%;
 	display: inline-block;
 	cursor: w-resize;
+}
+
+#time_track{
+	width: 2px;
+	height: 130%;
+	background-color: #CD0000;
+	position: absolute;
+	left: -2px;
+	top: -15%;
+	z-index: 100;
 }

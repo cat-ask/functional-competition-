@@ -16,7 +16,7 @@ window.onload=function(){
 	let layer_click_e = new Event('click');
 	let select_layer;
 	let target = null,left_layer_mx = 0,right_layer_mx = 0;
-	let left_cx,right_cx,left_bar,right_bar,px_time = 0,center_cx;
+	let left_cx,right_cx,left_bar,right_bar,px_time = 0,center_cx,track_cx,track_mx = 0;
 	let st=0,et=0;
 	for(let i=1; i<6;i++) document.querySelector("#movie"+i).addEventListener("click",movie_set);
 	
@@ -28,6 +28,17 @@ window.onload=function(){
 		layer_list.innerHTML="";
 		if(document.querySelector("#movie_layer"))document.querySelector("#layer_list").removeChild(document.querySelector("#movie_layer"));
 		add_layer("movie_layer","#layer_list");
+		let track = document.createElement("div");
+		track.setAttribute("id","time_track");
+		document.querySelector("#layer_list").prepend(track);
+		now_t = 0;
+		document.querySelector("#time_track").addEventListener("mousedown",(e)=>{
+			initialization();
+			style_change("all",18,menu,"#6B747D");
+			track_cx = e.clientX;
+			console.log(e);
+			target = "time_track";
+		});
 		movie.addEventListener("loadedmetadata",function(){
 			endtime = movie.duration;
 			px_time = (endtime / 810);
@@ -51,6 +62,8 @@ window.onload=function(){
 				now_t = movie.currentTime;
 				document.querySelector("#now_t").innerHTML=time_set(now_t);
 				if(now_t >=endtime) clearInterval(time_p);
+				console.log(now_t / px_time);
+				document.querySelector("#time_track").style.left = (now_t / px_time)+"px";
 				for(let i=0; i <=drow_path.length-1; i++){
 					if(now_t < layer_array[i][5]) document.querySelector("#"+document.querySelector("#"+layer_array[i][0]).parentNode.id.substring(0,document.querySelector("#"+layer_array[i][0]).parentNode.id.length - 6)).style.display = "none";
 					if(now_t >= layer_array[i][5]) document.querySelector("#"+document.querySelector("#"+layer_array[i][0]).parentNode.id.substring(0,document.querySelector("#"+layer_array[i][0]).parentNode.id.length - 6)).style.display = "block";
@@ -1057,6 +1070,17 @@ window.onload=function(){
 					layer_array[i][5] = st;
 				}
 			}
+		}else if(target == "time_track"){
+			let play_time = 0;
+			x = e.clientX - track_cx;
+			let mx = track_mx + x;
+			console.log(mx);
+			mx = mx < 0 ? 0 : mx > (endtime / px_time) ? (endtime / px_time) : mx;
+			document.querySelector("#time_track").style.left = mx + "px";
+			track_cx = e.clientX;
+			track_mx = mx;
+			for(let i=0; i<mx;i++) play_time += px_time;
+			movie.currentTime = play_time;
 		}
 	});
 
