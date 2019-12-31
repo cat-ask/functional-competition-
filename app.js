@@ -6,7 +6,7 @@ window.onload=function(){
 	let menu = document.querySelector(".menu_button");
 	let out_result = "in",play=0;
 	let layer_list = document.querySelector("#layer_list"),layer_num = 0;
-	let layer_array=Array(); //id | start_time | end_time;
+	let layer_array=Array(); //id | start_time | end_time | left_layer_mx | right_layer_mx | start_sc | end_sc;
 	let select_id,select_num=Array(1,1);
 	let drow_path = Array(); //id | (x,y) | (x,y) num | color | thick(text) | type; if(text) id , (x,y,width,height), content , color, text_size, text
 	let path_num = 0,drow_path_id = -1;
@@ -15,8 +15,9 @@ window.onload=function(){
 	let canvas_id = 0;
 	let layer_click_e = new Event('click');
 	let select_layer;
-	let left_layer_move = 0;
-	
+	let target = null,left_layer_mx = 0,right_layer_mx = 0;
+	let left_cx,right_cx,left_bar,right_bar,px_time = 0,center_cx;
+	let st=0,et=0;
 	for(let i=1; i<6;i++) document.querySelector("#movie"+i).addEventListener("click",movie_set);
 	
 	function movie_set(){
@@ -29,6 +30,7 @@ window.onload=function(){
 		add_layer("movie_layer","#layer_list");
 		movie.addEventListener("loadedmetadata",function(){
 			endtime = movie.duration;
+			px_time = (endtime / 810);
 			document.querySelector("#end_t").innerHTML=time_set(endtime);
 		});
 	}
@@ -43,11 +45,17 @@ window.onload=function(){
 			style_change("along",11,menu,"#6B747D");
 			style_change("along",9,menu,"#0082C2");
 			movie.play();
+			initialization();
 			now_t = movie.currentTime;
 			let time_p = setInterval(function(){
 				now_t = movie.currentTime;
 				document.querySelector("#now_t").innerHTML=time_set(now_t);
 				if(now_t >=endtime) clearInterval(time_p);
+				for(let i=0; i <=drow_path.length-1; i++){
+					if(now_t < layer_array[i][5]) document.querySelector("#"+document.querySelector("#"+layer_array[i][0]).parentNode.id.substring(0,document.querySelector("#"+layer_array[i][0]).parentNode.id.length - 6)).style.display = "none";
+					if(now_t >= layer_array[i][5]) document.querySelector("#"+document.querySelector("#"+layer_array[i][0]).parentNode.id.substring(0,document.querySelector("#"+layer_array[i][0]).parentNode.id.length - 6)).style.display = "block";
+					if(now_t >= (layer_array[i][5]+layer_array[i][6])) document.querySelector("#"+document.querySelector("#"+layer_array[i][0]).parentNode.id.substring(0,document.querySelector("#"+layer_array[i][0]).parentNode.id.length - 6)).style.display = "none";
+				}
 			},10);
 		}
 	}
@@ -430,6 +438,13 @@ window.onload=function(){
 							canvas_id = -1;
 							style_change("all",18,menu,"#6B747D");
 							now_b = "";
+
+							//layer
+							for(let i=0; i<layer_num-1;i++){
+								document.querySelector("#"+(layer_array[i][0].substring(0,(layer_array[i][0].length-5)))+"_left").style.backgroundColor  = "#C8C8C8";
+								document.querySelector("#"+(layer_array[i][0].substring(0,(layer_array[i][0].length-5)))+"_center").style.backgroundColor= "#C8C8C8";
+								document.querySelector("#"+(layer_array[i][0].substring(0,(layer_array[i][0].length-5)))+"_right").style.backgroundColor = "#C8C8C8";
+							}
 						}
 					}
 				}
@@ -753,7 +768,7 @@ window.onload=function(){
 					layer_add.className = "layer_time";
 					layer_add.setAttribute("id",id_time);
 					document.querySelector("#canvas"+(i+1)+"_layer").prepend(layer_add);
-					console.log("#layer"+i+"_time",document.querySelector("#layer"+i+"_time"));
+
 					document.querySelector("#layer"+i+"_time").addEventListener("click",function(){layer_detail(i-1, "change");});
 					document.querySelector("#layer"+i+"_time").setAttribute("id","layer"+(i-1)+"_time");
 					layer_array[i-1][0] = "layer"+(i-1)+"_time";
@@ -797,7 +812,7 @@ window.onload=function(){
 		let layer_add = document.createElement("div");
 		if(append == "#canvas"+canvas_num+"_layer"){
 			layer_add.className = "layer_time";
-			layer_array.push(Array(id,"00 : 00 : 00 : 00",time_set(endtime)));
+			layer_array.push(Array(id,"00 : 00 : 00 : 00",time_set(endtime),0,0,0,endtime));
 		}else{
 			layer_add.className = "layer";
 			layer_num++;
@@ -901,9 +916,6 @@ window.onload=function(){
 			}
 
 			select();
-		}else{
-			document.querySelector("#start_t").innerHTML = "00 : 00 : 00 : 00";
-			document.querySelector("#keep_t").innerHTML = "00 : 00 : 00 : 00";
 		}
 
 		if(index > -1 && index <layer_array.length) select_layer = document.querySelector("#"+layer_array[index][0]).id.substring(0,(document.querySelector("#"+layer_array[index][0]).id.length-5)); 
@@ -913,12 +925,21 @@ window.onload=function(){
 				document.querySelector("#"+(layer_array[i][0].substring(0,(layer_array[i][0].length-5)))+"_center").style.backgroundColor= "#C8C8C8";
 				document.querySelector("#"+(layer_array[i][0].substring(0,(layer_array[i][0].length-5)))+"_right").style.backgroundColor = "#C8C8C8";
 			}
-			
 			document.querySelector("#"+select_layer+"_left").style.backgroundColor ="#17AFB1";
 			document.querySelector("#"+select_layer+"_center").style.backgroundColor ="#17AFB1";
 			document.querySelector("#"+select_layer+"_right").style.backgroundColor ="#17AFB1";
-			document.querySelector("#"+select_layer+"_left").addEventListener("mousedown",function(e){left_layer_move = 0;left_layer(e);});
-			document.querySelector("#"+select_layer+"_right").addEventListener("mousedown",function(e){right_layer(e);});
+			document.querySelector("#"+select_layer+"_left").addEventListener("mousedown",function(e){
+				target = "left";
+				left_cx = e.clientX;
+			});
+			document.querySelector("#"+select_layer+"_right").addEventListener("mousedown",function(e){
+				target = "right";
+				right_cx = e.clientX;
+			});
+			document.querySelector("#"+select_layer+"_center").addEventListener("mousedown",(e)=>{
+				target = "center";
+				center_cx = e.clientX;
+			});
 		}
 	}
 
@@ -963,29 +984,84 @@ window.onload=function(){
 			layer_detail(1,"not_change");
 		}
 	}
-	function left_layer(e){
-		if(select_layer && e && now_b == "select" && !left_layer_move){
-			let layer_width = document.querySelector("#"+select_layer+"_time");
-			layer_width.style.left = layer_width.style.left+"px";
-			let cx = e.offsetX,mx;
-			if(!left_layer_move){
-				document.querySelector("#"+select_layer+"_left").addEventListener("mousemove",function(e){
-						console.log(cx);
-						if(cx >= 0 && cx <= 810){
-							mx =(cx - e.offsetX);
-							layer_width.style.width =((layer_width.getBoundingClientRect().width) + mx)+"px";
-							document.querySelector("#"+select_layer+"_center").style.width = ((document.querySelector("#"+select_layer+"_center").getBoundingClientRect().width) + mx)+"px"
-							cx = e.offsetX;
-							layer_width.style.left =cx+"px";
-						}
-					left_layer_move = 1;
-				});	
+	
+	window.addEventListener("mousemove", e => {
+		if(target == null ) return;
+		let time_layer = document.querySelector("#"+select_layer+"_time");
+		for(let i=0; i <=drow_path.length-1; i++){
+			if(layer_array[i][0] == select_layer+"_time"){
+				left_layer_mx = layer_array[i][3];
+				right_layer_mx = layer_array[i][4];
 			}
-			document.querySelector("#"+select_layer+"_left").addEventListener("mouseup",function(){
-				if(left_layer_move){
-					console.log("end!",left_layer_move);
-				}
-			});
 		}
-	}
+		if(target == "left") {
+			st=et=0;
+			left_bar = document.querySelector("#"+select_layer+"_left");
+			x = e.clientX - left_cx;
+			left_layer_mx += x;
+			left_layer_mx = left_layer_mx < 0 ? 0 :left_layer_mx > 785 ? 785 : left_layer_mx;
+			left_layer_mx = (left_layer_mx+right_layer_mx) > 785 ? left_layer_mx - x : left_layer_mx;
+			time_layer.style.left = (left_layer_mx + x)+"px";
+			time_layer.style.width = (810 - (left_layer_mx + x + right_layer_mx) + "px") > 810 ? "810px" : (810 - (left_layer_mx + x + right_layer_mx) + "px") < 25 ? "25px" : 810 - (left_layer_mx + x + right_layer_mx) + "px";
+			left_cx = e.clientX;
+			//시간조정
+			for(let i = 0;i < (left_layer_mx + x); i++) st += px_time;
+			for(let i = 0;i < (810 - (left_layer_mx + x + right_layer_mx)); i++) et += px_time;
+			document.querySelector("#start_t").innerHTML = time_set(st);
+			document.querySelector("#keep_t").innerHTML = time_set(et);
+			for(let i=0; i <=drow_path.length-1; i++){
+				if(layer_array[i][0] == select_layer+"_time"){
+					layer_array[i][1] = time_set(st);
+					layer_array[i][2] = time_set(et);
+					layer_array[i][3] = left_layer_mx;
+					layer_array[i][5] = st;
+					layer_array[i][6] = et;
+				}
+			}
+		}else if(target == "right"){
+			st=et=0;
+			right_bar = document.querySelector("#"+select_layer+"_right");
+			x = right_cx - e.clientX;
+			right_layer_mx += x;
+			right_layer_mx = right_layer_mx < 0 ? 0 : right_layer_mx > 785 ? 785 : right_layer_mx;
+			right_layer_mx = (right_layer_mx + left_layer_mx) > 785 ? right_layer_mx - x : right_layer_mx;
+			time_layer.style.right = (right_layer_mx + x)+"px";
+			time_layer.style.width = (810 - (right_layer_mx + x + left_layer_mx) + "px") > 810 ? "810px" : (810 - (right_layer_mx + x + left_layer_mx) + "px") < 25 ? "25px" : 810 - (right_layer_mx + x + left_layer_mx) + "px";
+			right_cx = e.clientX;
+			//시간조정
+			for(let i = 0;i < (810 - (right_layer_mx + x + left_layer_mx)); i++) et += px_time;
+			document.querySelector("#keep_t").innerHTML = time_set(et);
+			for(let i=0; i <=drow_path.length-1; i++){
+				if(layer_array[i][0] == select_layer+"_time"){
+					layer_array[i][2] = time_set(et);
+					layer_array[i][4] = right_layer_mx;
+					layer_array[i][6] = et;
+				}
+			}
+		}else if(target == "center"){
+			st=et=0;
+			x = e.clientX - center_cx;
+			let mx = left_layer_mx + x;
+			mx = mx < 0 ? 0 : mx;
+			mx = (mx + parseInt(time_layer.getBoundingClientRect().width)) > 810 ? mx - x :mx;
+			time_layer.style.left = mx+"px";
+			left_layer_mx = mx;
+			center_cx = e.clientX;
+			//시간조정
+			for(let i = 0;i < (left_layer_mx); i++) st += px_time;
+			document.querySelector("#start_t").innerHTML = time_set(st);
+			for(let i=0; i <=drow_path.length-1; i++){
+				if(layer_array[i][0] == select_layer+"_time"){
+					layer_array[i][1] = time_set(st);
+					layer_array[i][3] = left_layer_mx;
+					layer_array[i][5] = st;
+				}
+			}
+		}
+	});
+
+	window.addEventListener("mouseup", ()=>{
+		target = null;
+	});
+
 }
