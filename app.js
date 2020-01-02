@@ -2,11 +2,10 @@ window.onload=function(){
 	
 	let movie = document.querySelector("#video");
 	let movie_area = document.querySelector("#play_video");
-	let now_t,endtime,canvas,canvas_num=0;
+	let now_t,endtime,canvas,canvas_num=0,play=0;
 	let menu = document.querySelector(".menu_button");
-	let out_result = "in",play=0;
 	let layer_list = document.querySelector("#layer_list"),layer_num = 0;
-	let layer_array=Array(); //id | start_time | end_time | left_layer_mx | right_layer_mx | start_sc | end_sc;
+	let layer_array=Array(); //id | start_time | end_time | left_layer_mx | right_layer_mx | start_sc | end_sc | center_my;
 	let select_id,select_num=Array(1,1);
 	let drow_path = Array(); //id | (x,y) | (x,y) num | color | thick(text) | type; if(text) id , (x,y,width,height), content , color, text_size, text
 	let path_num = 0,drow_path_id = -1;
@@ -16,27 +15,35 @@ window.onload=function(){
 	let layer_click_e = new Event('click');
 	let select_layer;
 	let target = null,left_layer_mx = 0,right_layer_mx = 0;
-	let left_cx,right_cx,left_bar,right_bar,px_time = 0,center_cx,track_cx,track_mx = 0;
+	let left_cx,right_cx,px_time = 0,center_cx,track_cx,track_mx = 0,layer_list_h,center_cy,center_layer_my,layer_swap=1,layer_swap_one,layer_swap_two;
 	let st=0,et=0;
 	for(let i=1; i<6;i++) document.querySelector("#movie"+i).addEventListener("click",movie_set);
 	
 	function movie_set(){
 		movie.setAttribute("src","movie/"+this.getAttribute("id")+".mp4");
 		document.querySelector("#now_t").innerHTML="00 : 00 : 00 : 00";
+		document.querySelector("#start_t").innerHTML = "00 : 00 : 00 : 00";
+		document.querySelector("#keep_t").innerHTML = "00 : 00 : 00 : 00";
 		canvas_all_del();
 		style_change("all",18,menu,"#6B747D");
 		layer_list.innerHTML="";
 		if(document.querySelector("#movie_layer"))document.querySelector("#layer_list").removeChild(document.querySelector("#movie_layer"));
 		add_layer("movie_layer","#layer_list");
+		
+		//이전에 time_track이 있으면 삭제
+		if(document.querySelector("#time_track")) document.querySelector("#layer_list").removeChild(document.querySelector("#time_track"));
+		
+		//time track add event
 		let track = document.createElement("div");
 		track.setAttribute("id","time_track");
 		document.querySelector("#layer_list").prepend(track);
 		now_t = 0;
+		
+		//time track move event
 		document.querySelector("#time_track").addEventListener("mousedown",(e)=>{
 			initialization();
 			style_change("all",18,menu,"#6B747D");
 			track_cx = e.clientX;
-			console.log(e);
 			target = "time_track";
 		});
 		movie.addEventListener("loadedmetadata",function(){
@@ -62,8 +69,8 @@ window.onload=function(){
 				now_t = movie.currentTime;
 				document.querySelector("#now_t").innerHTML=time_set(now_t);
 				if(now_t >=endtime) clearInterval(time_p);
-				console.log(now_t / px_time);
 				document.querySelector("#time_track").style.left = (now_t / px_time)+"px";
+				track_mx = (now_t / px_time);
 				for(let i=0; i <=drow_path.length-1; i++){
 					if(now_t < layer_array[i][5]) document.querySelector("#"+document.querySelector("#"+layer_array[i][0]).parentNode.id.substring(0,document.querySelector("#"+layer_array[i][0]).parentNode.id.length - 6)).style.display = "none";
 					if(now_t >= layer_array[i][5]) document.querySelector("#"+document.querySelector("#"+layer_array[i][0]).parentNode.id.substring(0,document.querySelector("#"+layer_array[i][0]).parentNode.id.length - 6)).style.display = "block";
@@ -261,9 +268,6 @@ window.onload=function(){
 							}
 						}
 					}else if(drow_path[i][5] == "text"){
-						console.log(drow_path);
-						console.log(cx,cy);
-						console.log((drow_path[i][1][0] <= cx) && ((drow_path[i][1][0] + drow_path[i][1][2]) >= cx));
 						if((drow_path[i][1][0] <= cx) && ((drow_path[i][1][0] + drow_path[i][1][2]) >= cx)){
 							if((drow_path[i][1][1] <= cy) && ((drow_path[i][1][1] + drow_path[i][1][3]) >= cy)){
 								canvas_id = i;
@@ -399,70 +403,70 @@ window.onload=function(){
 					}
 				}
 			}
+		}
 
-			document.querySelector("html").addEventListener("click",function(e){
-				cw = e.x;
-				ch = e.y;
-				if( now_b == "select" && canvas_num){
-					canvas_size = document.querySelector("#canvas"+canvas_num).getBoundingClientRect();
-					let layer_size =  document.querySelector("#layer_list").getBoundingClientRect();
-					if(((cw > (layer_size.x+layer_size.width) || cw < layer_size.x) || (ch > (layer_size.y+layer_size.height) || ch < layer_size.y))&&((cw > (canvas_size.x+canvas_size.width) || cw < canvas_size.x) || (ch > (canvas_size.y+canvas_size.height) || ch < canvas_size.y))){
-						//canvas에 적용
-						if(select_id){
-							canvas = document.querySelector("#"+select_id);
-							ctx = canvas.getContext("2d");
-							ctx.clearRect(0,0,canvas.width,canvas.height);
-							ctx.strokeStyle = drow_path[canvas_id][3];
+		document.querySelector("html").addEventListener("click",function(e){
+			cw = e.x;
+			ch = e.y;
+			if( now_b == "select" && canvas_num){
+				canvas_size = document.querySelector("#canvas"+canvas_num).getBoundingClientRect();
+				let layer_size =  document.querySelector("#layer_list").getBoundingClientRect();
+				if(((cw > (layer_size.x+layer_size.width) || cw < layer_size.x) || (ch > (layer_size.y+layer_size.height) || ch < layer_size.y))&&((cw > (canvas_size.x+canvas_size.width) || cw < canvas_size.x) || (ch > (canvas_size.y+canvas_size.height) || ch < canvas_size.y))){
+					//canvas에 적용
+					if(select_id){
+						canvas = document.querySelector("#"+select_id);
+						ctx = canvas.getContext("2d");
+						ctx.clearRect(0,0,canvas.width,canvas.height);
+						ctx.strokeStyle = drow_path[canvas_id][3];
 
-							if(drow_path[canvas_id][5] == "line"){
-								ctx.lineWidth = drow_path[canvas_id][4];
-								for(let h=1;h<=drow_path[canvas_id][2];h++){
-									ctx.beginPath();
-									if(h == 1){
-										sx = drow_path[canvas_id][1][h][0];
-										sy = drow_path[canvas_id][1][h][1];
-									}
-									ctx.moveTo(sx,sy);
+						if(drow_path[canvas_id][5] == "line"){
+							ctx.lineWidth = drow_path[canvas_id][4];
+							for(let h=1;h<=drow_path[canvas_id][2];h++){
+								ctx.beginPath();
+								if(h == 1){
 									sx = drow_path[canvas_id][1][h][0];
 									sy = drow_path[canvas_id][1][h][1];
-									ctx.lineTo(sx,sy);
-									ctx.stroke();
 								}
-							}else if(drow_path[canvas_id][5] == "squre"){
-								fx = drow_path[canvas_id][1][0];
-								fy = drow_path[canvas_id][1][1];
-								sw = drow_path[canvas_id][1][2];
-								sh = drow_path[canvas_id][1][3];
-								ctx.fillRect(fx,fy,sw,sh);
-								squre_x = cx - fx;
-								squre_y = cy - fy;
-							}else if(drow_path[canvas_id][5] == "text"){
-								tx = drow_path[canvas_id][1][0];
-								ty = drow_path[canvas_id][1][1];
-								//텍스트
-								ctx.fillStyle = drow_path[canvas_id][3]; 
-								ctx.font = drow_path[canvas_id][4]+"px ''";
-								ctx.fillText(drow_path[canvas_id][2],tx,ty+drow_path[canvas_id][4]);
+								ctx.moveTo(sx,sy);
+								sx = drow_path[canvas_id][1][h][0];
+								sy = drow_path[canvas_id][1][h][1];
+								ctx.lineTo(sx,sy);
+								ctx.stroke();
 							}
+						}else if(drow_path[canvas_id][5] == "squre"){
+							fx = drow_path[canvas_id][1][0];
+							fy = drow_path[canvas_id][1][1];
+							sw = drow_path[canvas_id][1][2];
+							sh = drow_path[canvas_id][1][3];
+							ctx.fillRect(fx,fy,sw,sh);
+							squre_x = cx - fx;
+							squre_y = cy - fy;
+						}else if(drow_path[canvas_id][5] == "text"){
+							tx = drow_path[canvas_id][1][0];
+							ty = drow_path[canvas_id][1][1];
+							//텍스트
+							ctx.fillStyle = drow_path[canvas_id][3]; 
+							ctx.font = drow_path[canvas_id][4]+"px ''";
+							ctx.fillText(drow_path[canvas_id][2],tx,ty+drow_path[canvas_id][4]);
+						}
 
-							layer_detail(1,"not_change");
-							select_id = 0;
-							select_ok = 0;
-							canvas_id = -1;
-							style_change("all",18,menu,"#6B747D");
-							now_b = "";
+						layer_detail(1,"not_change");
+						select_id = 0;
+						select_ok = 0;
+						canvas_id = -1;
+						style_change("all",18,menu,"#6B747D");
+						now_b = "";
 
-							//layer
-							for(let i=0; i<layer_num-1;i++){
-								document.querySelector("#"+(layer_array[i][0].substring(0,(layer_array[i][0].length-5)))+"_left").style.backgroundColor  = "#C8C8C8";
-								document.querySelector("#"+(layer_array[i][0].substring(0,(layer_array[i][0].length-5)))+"_center").style.backgroundColor= "#C8C8C8";
-								document.querySelector("#"+(layer_array[i][0].substring(0,(layer_array[i][0].length-5)))+"_right").style.backgroundColor = "#C8C8C8";
-							}
+						//layer
+						for(let i=0; i<layer_num-1;i++){
+							document.querySelector("#"+(layer_array[i][0].substring(0,(layer_array[i][0].length-5)))+"_left").style.backgroundColor  = "#C8C8C8";
+							document.querySelector("#"+(layer_array[i][0].substring(0,(layer_array[i][0].length-5)))+"_center").style.backgroundColor= "#C8C8C8";
+							document.querySelector("#"+(layer_array[i][0].substring(0,(layer_array[i][0].length-5)))+"_right").style.backgroundColor = "#C8C8C8";
 						}
 					}
 				}
-			});
-		}
+			}
+		});
 	}
 
 	function terminal(menu,id){
@@ -604,6 +608,14 @@ window.onload=function(){
 								ctx.fillStyle = color;
 								ctx.fillRect(fx,fy,x-fx,y-fy);
 								let sx,sy;
+								/*
+									sx = widht
+									sy = height
+									x = 현재 마우스 x 좌표
+									y = 현재 마우스 y 좌표
+									fx = 처음 x 좌표
+									fy = 처음 y 좌표
+								*/
 								sx = x - fx;
 								sy = y - fy;
 								if( 0 > (x-fx)){
@@ -653,7 +665,7 @@ window.onload=function(){
 						let src = document.querySelector(".text_add");
 						src.setAttribute("id","text_s");
 						src.setAttribute("autofocus",true);
-						x =  Number(e.offsetX);
+						x = Number(e.offsetX);
 						y = Number(e.offsetY);
 						src.style.top = y+"px";
 						src.style.left = x+"px";
@@ -825,7 +837,7 @@ window.onload=function(){
 		let layer_add = document.createElement("div");
 		if(append == "#canvas"+canvas_num+"_layer"){
 			layer_add.className = "layer_time";
-			layer_array.push(Array(id,"00 : 00 : 00 : 00",time_set(endtime),0,0,0,endtime));
+			layer_array.push(Array(id,"00 : 00 : 00 : 00",time_set(endtime),0,0,0,endtime,0));
 		}else{
 			layer_add.className = "layer";
 			layer_num++;
@@ -927,6 +939,78 @@ window.onload=function(){
 				ctx.font = drow_path[canvas_id][4]+"px ''";
 				ctx.fillText(drow_path[canvas_id][2],tx,ty+drow_path[canvas_id][4]);
 			}
+			//out?
+			document.querySelector("html").addEventListener("click",function(e){
+				cx = e.clientX-movie_area.getBoundingClientRect().x;
+				cy = e.clientY-movie_area.getBoundingClientRect().y;
+				if(select_id && canvas_id> -1){
+					//이전에 선택된 도형 테두리 지우기 (테두리 그리느라 지워짐)
+					if(drow_path[canvas_id][5] == "squre"){
+						squre_x = cx - fx;
+						squre_y = cy - fy;
+					}
+				}
+				cw = e.x;
+				ch = e.y;
+				if( now_b == "select" && canvas_num){
+					canvas_size = document.querySelector("#canvas"+canvas_num).getBoundingClientRect();
+					let layer_size =  document.querySelector("#layer_list").getBoundingClientRect();
+					if(((cw > (layer_size.x+layer_size.width) || cw < layer_size.x) || (ch > (layer_size.y+layer_size.height) || ch < layer_size.y))&&((cw > (canvas_size.x+canvas_size.width) || cw < canvas_size.x) || (ch > (canvas_size.y+canvas_size.height) || ch < canvas_size.y))){
+						//canvas에 적용
+						if(select_id){
+							canvas = document.querySelector("#"+select_id);
+							ctx = canvas.getContext("2d");
+							ctx.clearRect(0,0,canvas.width,canvas.height);
+							ctx.strokeStyle = drow_path[canvas_id][3];
+	
+							if(drow_path[canvas_id][5] == "line"){
+								ctx.lineWidth = drow_path[canvas_id][4];
+								for(let h=1;h<=drow_path[canvas_id][2];h++){
+									ctx.beginPath();
+									if(h == 1){
+										sx = drow_path[canvas_id][1][h][0];
+										sy = drow_path[canvas_id][1][h][1];
+									}
+									ctx.moveTo(sx,sy);
+									sx = drow_path[canvas_id][1][h][0];
+									sy = drow_path[canvas_id][1][h][1];
+									ctx.lineTo(sx,sy);
+									ctx.stroke();
+								}
+							}else if(drow_path[canvas_id][5] == "squre"){
+								fx = drow_path[canvas_id][1][0];
+								fy = drow_path[canvas_id][1][1];
+								sw = drow_path[canvas_id][1][2];
+								sh = drow_path[canvas_id][1][3];
+								ctx.fillRect(fx,fy,sw,sh);
+								squre_x = cx - fx;
+								squre_y = cy - fy;
+							}else if(drow_path[canvas_id][5] == "text"){
+								tx = drow_path[canvas_id][1][0];
+								ty = drow_path[canvas_id][1][1];
+								//텍스트
+								ctx.fillStyle = drow_path[canvas_id][3]; 
+								ctx.font = drow_path[canvas_id][4]+"px ''";
+								ctx.fillText(drow_path[canvas_id][2],tx,ty+drow_path[canvas_id][4]);
+							}
+	
+							layer_detail(1,"not_change");
+							select_id = 0;
+							select_ok = 0;
+							canvas_id = -1;
+							style_change("all",18,menu,"#6B747D");
+							now_b = "";
+	
+							//layer
+							for(let i=0; i<layer_num-1;i++){
+								document.querySelector("#"+(layer_array[i][0].substring(0,(layer_array[i][0].length-5)))+"_left").style.backgroundColor  = "#C8C8C8";
+								document.querySelector("#"+(layer_array[i][0].substring(0,(layer_array[i][0].length-5)))+"_center").style.backgroundColor= "#C8C8C8";
+								document.querySelector("#"+(layer_array[i][0].substring(0,(layer_array[i][0].length-5)))+"_right").style.backgroundColor = "#C8C8C8";
+							}
+						}
+					}
+				}
+			});
 
 			select();
 		}
@@ -944,14 +1028,21 @@ window.onload=function(){
 			document.querySelector("#"+select_layer+"_left").addEventListener("mousedown",function(e){
 				target = "left";
 				left_cx = e.clientX;
+				layer_list_h = document.querySelector("#layer_list").getBoundingClientRect().top;
 			});
 			document.querySelector("#"+select_layer+"_right").addEventListener("mousedown",function(e){
 				target = "right";
 				right_cx = e.clientX;
+				layer_list_h = document.querySelector("#layer_list").getBoundingClientRect().top;
 			});
 			document.querySelector("#"+select_layer+"_center").addEventListener("mousedown",(e)=>{
+				for(let i=0;i<(layer_num - 1);i++) if(document.querySelector("#"+select_layer+"_time") == document.querySelector("#"+layer_array[i][0])) layer_swap_one = i;
 				target = "center";
 				center_cx = e.clientX;
+				center_cy = e.clientY;
+				console.log(document.querySelector("#"+select_layer+"_time").parentNode.id);
+				center_layer_my = typeof(document.querySelector("#"+document.querySelector("#"+select_layer+"_time").parentNode.id).style.top) == "number" ? document.querySelector("#"+document.querySelector("#"+select_layer+"_time").parentNode.id).style.top : layer_array[layer_swap_one][7];
+				layer_list_h = document.querySelector("#layer_list").getBoundingClientRect().top;
 			});
 		}
 	}
@@ -1020,6 +1111,7 @@ window.onload=function(){
 			//시간조정
 			for(let i = 0;i < (left_layer_mx + x); i++) st += px_time;
 			for(let i = 0;i < (810 - (left_layer_mx + x + right_layer_mx)); i++) et += px_time;
+			et = et > endtime ? endtime : et;
 			document.querySelector("#start_t").innerHTML = time_set(st);
 			document.querySelector("#keep_t").innerHTML = time_set(et);
 			for(let i=0; i <=drow_path.length-1; i++){
@@ -1043,6 +1135,7 @@ window.onload=function(){
 			right_cx = e.clientX;
 			//시간조정
 			for(let i = 0;i < (810 - (right_layer_mx + x + left_layer_mx)); i++) et += px_time;
+			et = et > endtime ? endtime : et;
 			document.querySelector("#keep_t").innerHTML = time_set(et);
 			for(let i=0; i <=drow_path.length-1; i++){
 				if(layer_array[i][0] == select_layer+"_time"){
@@ -1056,10 +1149,33 @@ window.onload=function(){
 			x = e.clientX - center_cx;
 			let mx = left_layer_mx + x;
 			mx = mx < 0 ? 0 : mx;
-			mx = (mx + parseInt(time_layer.getBoundingClientRect().width)) > 810 ? mx - x :mx;
+			mx = (mx + parseInt(time_layer.getBoundingClientRect().width)) > 809 ? mx - x : mx;
 			time_layer.style.left = mx+"px";
+			time_layer.style.right = right_layer_mx+"px";
 			left_layer_mx = mx;
+			right_layer_mx = (810 - (mx + parseInt(time_layer.getBoundingClientRect().width)));
 			center_cx = e.clientX;
+			
+			//layer swap
+			if(layer_num > 2 && layer_swap){
+				y = center_cy - e.clientY;
+				center_layer_my -= y;
+				document.querySelector("#"+document.querySelector("#"+select_layer+"_time").parentNode.id).style.top = center_layer_my + "px";
+				console.log(layer_array);
+				for(let i = 0; i < (layer_num-1); i++){
+					if("#"+document.querySelector("#"+select_layer+"_time") !== document.querySelector("#"+layer_array[i][0])){
+						if(document.querySelector("#"+layer_array[i][0]).getBoundingClientRect().top + 2 > document.querySelector("#"+select_layer+"_time").getBoundingClientRect().top){
+							if(document.querySelector("#"+layer_array[i][0]).getBoundingClientRect().top - 2 < document.querySelector("#"+select_layer+"_time").getBoundingClientRect().top){
+								layer_swap_two = i;
+								layer_swap = 2;
+								console.log(layer_swap_two,layer_swap_one);
+							}
+						}
+					}
+				}
+				center_cy = e.clientY;
+			}
+
 			//시간조정
 			for(let i = 0;i < (left_layer_mx); i++) st += px_time;
 			document.querySelector("#start_t").innerHTML = time_set(st);
@@ -1067,6 +1183,7 @@ window.onload=function(){
 				if(layer_array[i][0] == select_layer+"_time"){
 					layer_array[i][1] = time_set(st);
 					layer_array[i][3] = left_layer_mx;
+					layer_array[i][4] = right_layer_mx;
 					layer_array[i][5] = st;
 				}
 			}
@@ -1074,18 +1191,55 @@ window.onload=function(){
 			let play_time = 0;
 			x = e.clientX - track_cx;
 			let mx = track_mx + x;
-			console.log(mx);
 			mx = mx < 0 ? 0 : mx > (endtime / px_time) ? (endtime / px_time) : mx;
 			document.querySelector("#time_track").style.left = mx + "px";
 			track_cx = e.clientX;
 			track_mx = mx;
 			for(let i=0; i<mx;i++) play_time += px_time;
 			movie.currentTime = play_time;
+			document.querySelector("#now_t").innerHTML=time_set(play_time);
+			for(let i=0; i <=drow_path.length-1; i++){
+				if(play_time < layer_array[i][5]) document.querySelector("#"+document.querySelector("#"+layer_array[i][0]).parentNode.id.substring(0,document.querySelector("#"+layer_array[i][0]).parentNode.id.length - 6)).style.display = "none";
+				if(play_time >= layer_array[i][5]) document.querySelector("#"+document.querySelector("#"+layer_array[i][0]).parentNode.id.substring(0,document.querySelector("#"+layer_array[i][0]).parentNode.id.length - 6)).style.display = "block";
+				if(play_time >= (layer_array[i][5]+layer_array[i][6])) document.querySelector("#"+document.querySelector("#"+layer_array[i][0]).parentNode.id.substring(0,document.querySelector("#"+layer_array[i][0]).parentNode.id.length - 6)).style.display = "none";
+			}
 		}
 	});
 
 	window.addEventListener("mouseup", ()=>{
 		target = null;
+		if(layer_swap_one > -1) document.querySelector("#"+document.querySelector("#"+layer_array[layer_swap_one][0]).parentNode.id).style.top = layer_array[layer_swap_one][7]+"px";
+		if(layer_swap > 1){
+			let top_num = 0;
+			console.log(layer_swap_one,layer_swap_two);
+			if(layer_swap_one == layer_swap_two) return false;
+			if(layer_swap_one > layer_swap_two){
+				for(let i = 1; i<=(layer_swap_one - layer_swap_two); i++) top_num += 25;
+				document.querySelector("#"+document.querySelector("#"+layer_array[layer_swap_one][0]).parentNode.id).style.top = top_num+"px";
+				document.querySelector("#"+document.querySelector("#"+layer_array[layer_swap_two][0]).parentNode.id).style.top = -top_num+"px";
+				layer_array[layer_swap_one][7] = -top_num;
+				layer_array[layer_swap_two][7] = top_num;
+			}else{
+				for(let i = 1; i<=(layer_swap_two - layer_swap_one); i++) top_num += 25;
+				document.querySelector("#"+document.querySelector("#"+layer_array[layer_swap_one][0]).parentNode.id).style.top = -top_num+"px";
+				document.querySelector("#"+document.querySelector("#"+layer_array[layer_swap_two][0]).parentNode.id).style.top = top_num+"px";
+				layer_array[layer_swap_one][7] = top_num;
+				layer_array[layer_swap_two][7] = -top_num;
+			}
+
+			document.querySelector("#"+document.querySelector("#"+layer_array[layer_swap_one][0]).parentNode.id.substring(0,document.querySelector("#"+layer_array[layer_swap_one][0]).parentNode.id.length - 6)).style.zIndex = layer_zindex[layer_swap_two];
+			document.querySelector("#"+document.querySelector("#"+layer_array[layer_swap_two][0]).parentNode.id.substring(0,document.querySelector("#"+layer_array[layer_swap_two][0]).parentNode.id.length - 6)).style.zIndex = layer_zindex[layer_swap_one];
+
+			document.querySelector("#"+layer_array[layer_swap_two][0]).setAttribute("id",layer_array[layer_swap_one][0]);
+			document.querySelector("#"+layer_array[layer_swap_one][0]).setAttribute("id",layer_array[layer_swap_two][0]);
+			for(let i = 1;i<8;i++){
+				let name = layer_array[layer_swap_one][i];
+				layer_array[layer_swap_one][i] = layer_array[layer_swap_two][i];
+				layer_array[layer_swap_two][i] = name;
+			}
+			layer_swap = 1;
+			console.log(layer_array);
+		}
 	});
 
 }
