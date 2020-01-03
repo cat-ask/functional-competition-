@@ -1344,7 +1344,7 @@ window.onload=function(){
 						</head>
 						<body>
 							<div id = "view" style = "position:relative; width: 900px; height: 500px; background-color:#000;">
-								<video src="`+video_src+`" controls style="position: absolute; left: 0; top: 0; width: 100%; height: 100%;></video>`;
+								<video src="file:///C:/Users/School/Desktop/B과제_(구)/`+video_src+`" controls style="position: absolute; left: 0; top: 0; width: 100%; height: 100%;"></video>`;
 		for(let i=0; i<drow_path.length;i++){
 			let view_img = null;
 			let con = document.querySelector(drow_path[i][0]);
@@ -1358,12 +1358,12 @@ window.onload=function(){
 			view_img.className = "clip";
 			view_img.style.position = "absolute";
 			view_img.style.pointerEvents = "none";
-			view_img.style.left = drow_path[i][1][0]+"px";
-			view_img.style.top = drow_path[i][1][1]+"px";
+			view_img.style.left = "0px";
+			view_img.style.top = "0px";
 			
 			view_img.dataset.start = drow_path[i][6];
 			view_img.dataset.duration = drow_path[i][7];
-			content+=(view_img.outerHTML);
+			content +=(view_img.outerHTML);
 		}
 		content +=`</div>
 		<script>
