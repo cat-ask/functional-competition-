@@ -4,32 +4,57 @@
 }
 
 #top{
-	width: 1200px;
+	width: 1250px;
 	height: 500px;
 	margin: 0 auto;
 	position: relative;
 	margin-top: 100px;
 }
 
-#menu{ 
-	width: 120px;
+#menu{
+	margin-top: 50px;
+	width: 170px;
 	display: inline-block;
+	position: relative;
 }
 
 .menu_button{
 	display: inline-block;
-	width: 100px;
-	height: 40px;
-	border-radius: 10px;
-	margin: 8px 10px;
+	width: 120px;
+	height: 50px;
+	margin: 0 10px;
 	text-align: center;
-	background-color: #6B747D;
-	color: white;
+	border: none;
+	border-bottom: 1px solid #FFFFFF;
+	background-color: #7E7E7E;
+	color: #FFFFFF;
 	font-size: 15px;
 }
 
 .menu_button:hover{
-	background-color: #0082C2;
+	background-color: #C8C8C8;
+}
+
+#menu_css_design{
+	width: 10px;
+	height: 449px;
+	position: absolute;
+	top: 0;
+	left: 0;
+	background-color: #585858;
+}
+
+#menu_title{
+	width: 130px;
+	height:35px;
+	background-color: #585858;
+	position: absolute;
+	top: -50px;
+	left: 0;
+	color: #FFFFFF;
+	text-align:center;
+	padding-top: 15px;
+	font-weight: bold;
 }
 
 #play_video{
@@ -37,7 +62,7 @@
 	display: inline-block;
 	width: 900px;
 	height: 500px;
-	background-color: #7F7F7F;
+	background-color: #000000;
 	color: white;
 	text-align: center;
 	top: 0;
@@ -53,7 +78,7 @@
 
 #play_video > p{
 	font-size: 40px;
-	margin: 200px 0;
+	margin: 230px auto;
 }
 
 #menu_detail{
@@ -187,30 +212,4 @@
 	left: -2px;
 	top: -15%;
 	z-index: 100;
-}
-
-#view .clip{
-	position: absolute;
-	pointer-events: none;
-}
-
-#view .clip.active:not(canvas){
-	border-color: rgb(255, 113, 96)!important;
-}
-
-#view div.clip{
-	width :1px;
-	height: 1px;
-	border-width: 5px;
-	border-style: solid;
-	border-color: transparent;
-}
-
-#view span.clip{
-	padding: 5px;
-	height:auto;
-	display: block;
-	border-width: 2px;
-	border-style: solid;
-	border-color: transparent;
 }

@@ -27,7 +27,7 @@ window.onload=function(){
 		document.querySelector("#start_t").innerHTML = "00 : 00 : 00 : 00";
 		document.querySelector("#keep_t").innerHTML = "00 : 00 : 00 : 00";
 		canvas_all_del();
-		style_change("all",18,menu,"#6B747D");
+		style_change("all",18,menu,"#7E7E7E");
 		layer_list.innerHTML="";
 		if(document.querySelector("#movie_layer"))document.querySelector("#layer_list").removeChild(document.querySelector("#movie_layer"));
 		add_layer("movie_layer","#layer_list");
@@ -44,7 +44,7 @@ window.onload=function(){
 		//time track move event
 		document.querySelector("#time_track").addEventListener("mousedown",(e)=>{
 			initialization();
-			style_change("all",18,menu,"#6B747D");
+			style_change("all",18,menu,"#7E7E7E");
 			track_cx = e.clientX;
 			target = "time_track";
 		});
@@ -55,23 +55,35 @@ window.onload=function(){
 		});
 	}
 
-	document.querySelector("#play_b").addEventListener("click",movie_play);
-	document.querySelector("#stop_b").addEventListener("click",movie_stop);
-	document.querySelector("#down_b").addEventListener("click",download);
+	document.querySelector("#play_b").addEventListener("click",()=>{
+		if(movie.getAttribute("src") !== null) movie_play();
+		else alert("동영상을 선택해주세요!");
+	});
+	document.querySelector("#stop_b").addEventListener("click",()=>{
+		if(movie.getAttribute("src") !== null) movie_stop();
+		else alert("동영상을 선택해주세요!");
+	});
+	document.querySelector("#down_b").addEventListener("click",()=>{
+		if(movie.getAttribute("src") !== null) download();
+		else alert("동영상을 선택해주세요!");
+	});
 
 	function movie_play(){
 		if(movie.getAttribute("src") !== null){
 			play=1;
-			style_change("all",18,menu,"#6B747D");
-			style_change("along",11,menu,"#6B747D");
-			style_change("along",9,menu,"#0082C2");
+			style_change("all",18,menu,"#7E7E7E");
+			style_change("along",11,menu,"#7E7E7E");
+			style_change("along",9,menu,"#C8C8C8");
 			movie.play();
 			initialization();
 			now_t = movie.currentTime;
 			let time_p = setInterval(function(){
 				now_t = movie.currentTime;
 				document.querySelector("#now_t").innerHTML=time_set(now_t);
-				if(now_t >=endtime) clearInterval(time_p);
+				if(now_t >=endtime){
+					clearInterval(time_p);
+					style_change("along",9,menu,"#7E7E7E");
+				}
 				document.querySelector("#time_track").style.left = (now_t / px_time)+"px";
 				track_mx = (now_t / px_time);
 				for(let i=0; i <=drow_path.length-1; i++){
@@ -80,14 +92,19 @@ window.onload=function(){
 					if(now_t >= (layer_array[i][5]+layer_array[i][6])) document.querySelector("#"+document.querySelector("#"+layer_array[i][0]).parentNode.id.substring(0,document.querySelector("#"+layer_array[i][0]).parentNode.id.length - 6)).style.display = "none";
 				}
 			},10);
+		}else{
+			alert("동영상을 선택해주세요!");
 		}
 	}
 
 	function movie_stop(){
-		if(play){
+		if(play && movie.getAttribute("src") !== null){
 			movie.pause();
-			style_change("along",11,menu,"#0082C2");
-			style_change("along",9,menu,"#6B747D");
+			style_change("along",11,menu,"#C8C8C8");
+			style_change("along",9,menu,"#7E7E7E");
+			play = 0;
+		}else{
+			alert("동영상을 선택해주세요!");
 		}
 	}
 
@@ -107,7 +124,10 @@ window.onload=function(){
 
 	document.querySelector("body").addEventListener("click",out);
 
-	document.querySelector("#alld_b").addEventListener("click",canvas_all_del);
+	document.querySelector("#alld_b").addEventListener("click",()=>{
+		if(movie.getAttribute("src") !== null) canvas_all_del();
+		else alert("동영상을 선택해주세요!");
+	});
 
 	let out_i=1,id =1,drow_ok;
 	let end=0;
@@ -122,6 +142,7 @@ window.onload=function(){
 		drow_ok = 1;
 		now_b = "squre";
 		if(movie.getAttribute("src") !== null) terminal("first","squre_b");
+		else alert("동영상을 선택해주세요!");
 	});
 
 	document.querySelector("#text_b").addEventListener("click",function(){
@@ -131,6 +152,7 @@ window.onload=function(){
 		text_e= 1;
 		now_b="text";
 		if(movie.getAttribute("src") !== null) terminal("first","text_b");
+		else alert("동영상을 선택해주세요!");
 	});
 
 	document.querySelector("#free_b").addEventListener("click",function(){
@@ -139,27 +161,34 @@ window.onload=function(){
 		drow_ok = 1;
 		now_b = "free";
 		if(movie.getAttribute("src") !== null) terminal("first","free_b");
+		else alert("동영상을 선택해주세요!");
 	});
 
 	document.querySelector("#sle_b").addEventListener("click",function(){
-		if(document.querySelector("#canvas"+canvas_num) && movie.getAttribute("src") !== null){
-			now_b = "select";
-			select();
-		}
+		if(movie.getAttribute("src") !== null){
+			if(document.querySelector("#canvas"+canvas_num)){
+				now_b = "select";
+				select();
+			}
+		}else alert("동영상을 선택해주세요!");
 	});
 
 	document.querySelector("#somed_b").addEventListener("click",function(){
-		now_b = "select_del";
-		if(select_id && canvas_id>-1) select_del(select_id);
+		if(movie.getAttribute("src") !== null){
+			now_b = "select_del";
+			if(select_id && canvas_id>-1) select_del(select_id);
+		}else alert("동영상을 선택해주세요!");
 	});
 	
 	//선택
 	function select(){
-		if(canvas_num && now_b == "select"){
-			style_change("all",18,menu,"#6B747D");
-			style_change("along",7,menu,"#0082C2");
-			if(now_b == "select") movie_area.addEventListener("mousedown",function(e){drow_select(e);});
-		}
+		if(movie.getAttribute("src") !== null){
+			if(canvas_num && now_b == "select"){
+				style_change("all",18,menu,"#7E7E7E");
+				style_change("along",7,menu,"#C8C8C8");
+				if(now_b == "select") movie_area.addEventListener("mousedown",function(e){drow_select(e);});
+			}
+		}else alert("동영상을 선택해주세요!");
 	}
 
 	function drow_select(e){
@@ -456,7 +485,7 @@ window.onload=function(){
 						select_id = 0;
 						select_ok = 0;
 						canvas_id = -1;
-						style_change("all",18,menu,"#6B747D");
+						style_change("all",18,menu,"#7E7E7E");
 						now_b = "";
 
 						//layer
@@ -558,8 +587,8 @@ window.onload=function(){
 					}
 				}
 			}
-			style_change("all",18,menu,"#6B747D");
-			style_change("along",1,menu,"#0082C2");
+			style_change("all",18,menu,"#7E7E7E");
+			style_change("along",1,menu,"#C8C8C8");
 			id = 1;
 		}
 	}
@@ -638,8 +667,8 @@ window.onload=function(){
 						}
 					}
 				}
-				style_change("all",18,menu,"#6B747D");
-				style_change("along",3,menu,"#0082C2");
+				style_change("all",18,menu,"#7E7E7E");
+				style_change("along",3,menu,"#C8C8C8");
 				id = 1;
 			}
 		}
@@ -725,8 +754,8 @@ window.onload=function(){
 					}
 				}
 			}
-			style_change("all",18,menu,"#6B747D");
-			style_change("along",5,menu,"#0082C2");
+			style_change("all",18,menu,"#7E7E7E");
+			style_change("along",5,menu,"#C8C8C8");
 			id = 1;
 		}
 	}
@@ -750,7 +779,7 @@ window.onload=function(){
 			if(!out_i && (click_w > (canvas_size.x+canvas_size.width) || click_w < canvas_size.x) || (click_h > (canvas_size.y+canvas_size.height) || click_w < canvas_size.y))  end = 1;
 			out_i = 0;
 			if(end) {
-				style_change("all",18,menu,"#6B747D");
+				style_change("all",18,menu,"#7E7E7E");
 				drow_ok=0;
 				now_b = "";
 				initialization();
@@ -760,7 +789,7 @@ window.onload=function(){
 
 	//canvas 전체 삭제
 	function canvas_all_del(){
-		style_change("all",18,menu,"#6B747D");
+		style_change("all",18,menu,"#7E7E7E");
 		if(document.querySelector("input"))movie_area.removeChild(document.querySelector("input"));
 		for(let i=1;i<=canvas_num;i++) movie_area.removeChild(document.querySelector("#canvas"+i));
 		for(let i=1;i<=canvas_num;i++) document.querySelector("#layer_list").removeChild(document.querySelector("#canvas"+i+"_layer"));
@@ -784,7 +813,7 @@ window.onload=function(){
 				drow_path.splice(canvas_id,1);
 				layer_zindex.splice(canvas_id,1);
 				document.querySelector("#layer_list").removeChild(document.querySelector("#"+id+"_layer"));
-				style_change("all",18,menu,"#6B747D");
+				style_change("all",18,menu,"#7E7E7E");
 				now_b = "";
 				for(let i=canvas_id+1;i<layer_array.length+1;i++){
 					layer_zindex[i-1] = layer_zindex[i-1]--;
@@ -892,8 +921,8 @@ window.onload=function(){
 			document.querySelector("#start_t").innerHTML = layer_array[index][1];
 			document.querySelector("#keep_t").innerHTML = layer_array[index][2];
 			now_b = "select";
-			style_change("all",18,menu,"#6B747D");
-			style_change("along",7,menu,"#0082C2");
+			style_change("all",18,menu,"#7E7E7E");
+			style_change("along",7,menu,"#C8C8C8");
 			select_ok = 0;
 
 			initialization();
@@ -1019,7 +1048,7 @@ window.onload=function(){
 							select_id = 0;
 							select_ok = 0;
 							canvas_id = -1;
-							style_change("all",18,menu,"#6B747D");
+							style_change("all",18,menu,"#7E7E7E");
 							now_b = "";
 	
 							//layer
