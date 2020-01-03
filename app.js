@@ -15,7 +15,7 @@ window.onload=function(){
 	let layer_click_e = new Event('click');
 	let select_layer;
 	let target = null,left_layer_mx = 0,right_layer_mx = 0;
-	let left_cx,right_cx,px_time = 0,center_cx,track_cx,track_mx = 0,layer_list_h,center_cy,center_layer_my,layer_swap=1,layer_swap_one,layer_swap_two;
+	let left_cx,right_cx,px_time = 0,center_cx,track_cx,track_mx = 0,layer_list_h,center_cy,center_layer_my,layer_swap=0,layer_swap_one,layer_swap_two;
 	let st=0,et=0;
 	for(let i=1; i<6;i++) document.querySelector("#movie"+i).addEventListener("click",movie_set);
 	
@@ -1035,7 +1035,6 @@ window.onload=function(){
 		if(index > -1 && index <layer_array.length) select_layer = document.querySelector("#"+layer_array[index][0]).id.substring(0,(document.querySelector("#"+layer_array[index][0]).id.length-5)); 
 		if(select_layer && now_b == "select"){
 			for(let i=0; i<layer_num-1;i++){
-				console.log(layer_array[i][0].substring(0,(layer_array[i][0].length-5)));
 				document.querySelector("#"+(layer_array[i][0].substring(0,(layer_array[i][0].length-5)))+"_left").style.backgroundColor  = "#C8C8C8";
 				document.querySelector("#"+(layer_array[i][0].substring(0,(layer_array[i][0].length-5)))+"_center").style.backgroundColor= "#C8C8C8";
 				document.querySelector("#"+(layer_array[i][0].substring(0,(layer_array[i][0].length-5)))+"_right").style.backgroundColor = "#C8C8C8";
@@ -1051,21 +1050,23 @@ window.onload=function(){
 			document.querySelector("#"+select_layer+"_right").addEventListener("mousedown",function(e){
 				target = "right";
 				right_cx = e.clientX;
-				layer_list_h = document.querySelector("#layer_list").getBoundingClientRect().top;
 			});
 			document.querySelector("#"+select_layer+"_center").addEventListener("mousedown",(e)=>{
-				for(let i=0;i<(layer_num - 1);i++){
-					if(document.querySelector("#"+select_layer+"_time") == document.querySelector("#"+layer_array[i][0])){
-						layer_swap_one = i;
-					}
-				}
 				target = "center";
 				center_cx = e.clientX;
-				center_cy = e.clientY;
-				for(let i = 0; i < (layer_num  - 1); i++) document.querySelector("#"+(document.querySelector("#"+layer_array[i][0]).parentNode.id)).style.zIndex = 5;
-				document.querySelector("#"+(document.querySelector("#"+select_layer+"_time").parentNode.id)).style.zIndex = 10;
-				center_layer_my = typeof(document.querySelector("#"+document.querySelector("#"+select_layer+"_time").parentNode.id).style.top) == "number" ? document.querySelector("#"+document.querySelector("#"+select_layer+"_time").parentNode.id).style.top : layer_array[layer_swap_one][7];
-				layer_list_h = document.querySelector("#layer_list").getBoundingClientRect().top;
+			});
+			document.querySelector("#"+select_layer+"_center").addEventListener("dblclick",(e)=>{
+				console.log(e);
+				document.querySelector("#"+select_layer+"_center").addEventListener("mousedown",(e)=>{
+					target = "swap";
+					for(let i=0;i<(layer_num - 1);i++) if(document.querySelector("#"+select_layer+"_time") == document.querySelector("#"+layer_array[i][0]))layer_swap_one = i;
+					center_cy = e.clientY;
+					for(let i = 0; i < (layer_num  - 1); i++) document.querySelector("#"+(document.querySelector("#"+layer_array[i][0]).parentNode.id)).style.zIndex = 5;
+					document.querySelector("#"+(document.querySelector("#"+select_layer+"_time").parentNode.id)).style.zIndex = 10;
+					center_layer_my = typeof(document.querySelector("#"+document.querySelector("#"+select_layer+"_time").parentNode.id).style.top) == "number" ? document.querySelector("#"+document.querySelector("#"+select_layer+"_time").parentNode.id).style.top : layer_array[layer_swap_one][7];
+					layer_list_h = document.querySelector("#layer_list").getBoundingClientRect().top;
+					layer_swap = 1;
+				});
 			});
 		}
 	}
@@ -1178,28 +1179,6 @@ window.onload=function(){
 			left_layer_mx = mx;
 			right_layer_mx = (810 - (mx + parseInt(time_layer.getBoundingClientRect().width))) > -1 ? (810 - (mx + parseInt(time_layer.getBoundingClientRect().width))) : 0;
 			center_cx = e.clientX;
-			
-			//layer swap
-			if(layer_num > 2 && layer_swap){
-				let n=0,n1=0;
-				for(let i=0;i<layer_swap_one;i++) n +=30;
-				for(let i = layer_swap_one;i<(layer_num - 2);i++) n1 -= 30;
-				y = center_cy - e.clientY;
-				center_layer_my -= y;
-				center_layer_my = center_layer_my < n1 ? n1 : center_layer_my > n ? n : center_layer_my;
-				document.querySelector("#"+document.querySelector("#"+select_layer+"_time").parentNode.id).style.top = center_layer_my + "px";
-				for(let i = 0; i < (layer_num-1); i++){
-					if((select_layer+"_time") !== (layer_array[i][0])){
-						if(document.querySelector("#"+layer_array[i][0]).getBoundingClientRect().top + 2 > document.querySelector("#"+select_layer+"_time").getBoundingClientRect().top){
-							if(document.querySelector("#"+layer_array[i][0]).getBoundingClientRect().top - 2 < document.querySelector("#"+select_layer+"_time").getBoundingClientRect().top){
-								layer_swap_two = i;
-								layer_swap = 2;
-							}else layer_swap = 1;
-						}else layer_swap = 1;
-					}else layer_swap = 1;
-				}
-				center_cy = e.clientY;
-			}
 
 			//시간조정
 			for(let i = 0;i < (left_layer_mx); i++) st += px_time;
@@ -1227,6 +1206,28 @@ window.onload=function(){
 				if(play_time < layer_array[i][5]) document.querySelector("#"+document.querySelector("#"+layer_array[i][0]).parentNode.id.substring(0,document.querySelector("#"+layer_array[i][0]).parentNode.id.length - 6)).style.display = "none";
 				if(play_time >= layer_array[i][5]) document.querySelector("#"+document.querySelector("#"+layer_array[i][0]).parentNode.id.substring(0,document.querySelector("#"+layer_array[i][0]).parentNode.id.length - 6)).style.display = "block";
 				if(play_time >= (layer_array[i][5]+layer_array[i][6])) document.querySelector("#"+document.querySelector("#"+layer_array[i][0]).parentNode.id.substring(0,document.querySelector("#"+layer_array[i][0]).parentNode.id.length - 6)).style.display = "none";
+			}
+		}else if(target == "swap"){
+			//layer swap
+			if(layer_num > 2 && layer_swap){
+				let n=0,n1=0;
+				for(let i=0;i<layer_swap_one;i++) n +=30;
+				for(let i = layer_swap_one;i<(layer_num - 2);i++) n1 -= 30;
+				y = center_cy - e.clientY;
+				center_layer_my -= y;
+				center_layer_my = center_layer_my < n1 ? n1 : center_layer_my > n ? n : center_layer_my;
+				document.querySelector("#"+document.querySelector("#"+select_layer+"_time").parentNode.id).style.top = center_layer_my + "px";
+				for(let i = 0; i < (layer_num-1); i++){
+					if((select_layer+"_time") !== (layer_array[i][0])){
+						if(document.querySelector("#"+layer_array[i][0]).getBoundingClientRect().top + 2 > document.querySelector("#"+select_layer+"_time").getBoundingClientRect().top){
+							if(document.querySelector("#"+layer_array[i][0]).getBoundingClientRect().top - 2 < document.querySelector("#"+select_layer+"_time").getBoundingClientRect().top){
+								layer_swap_two = i;
+								layer_swap = 2;
+							}else layer_swap = 1;
+						}else layer_swap = 1;
+					}else layer_swap = 1;
+				}
+				center_cy = e.clientY;
 			}
 		}
 	});
@@ -1276,7 +1277,7 @@ window.onload=function(){
 				layer_array[layer_swap_one][i] = layer_array[layer_swap_two][i];
 				layer_array[layer_swap_two][i] = name;
 			}
-			layer_swap = 1;
+			layer_swap = 0;
 			for(let i=0;i<(layer_num-1);i++){
 				name = "#"+(layer_array[i][0].substring(0,layer_array[i][0].length - 5));
 				name2 = document.querySelector("#"+layer_array[i][0]).parentNode.id;
