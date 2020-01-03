@@ -188,3 +188,29 @@
 	top: -15%;
 	z-index: 100;
 }
+
+#view .clip{
+	position: absolute;
+	pointer-events: none;
+}
+
+#view .clip.active:not(canvas){
+	border-color: rgb(255, 113, 96)!important;
+}
+
+#view div.clip{
+	width :1px;
+	height: 1px;
+	border-width: 5px;
+	border-style: solid;
+	border-color: transparent;
+}
+
+#view span.clip{
+	padding: 5px;
+	height:auto;
+	display: block;
+	border-width: 2px;
+	border-style: solid;
+	border-color: transparent;
+}

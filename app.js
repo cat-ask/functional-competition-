@@ -1,13 +1,14 @@
 window.onload=function(){
 	
-	let movie = document.querySelector("#video");
+	let movie = document.querySelector("#video"),video_src="";
 	let movie_area = document.querySelector("#play_video");
 	let now_t,endtime,canvas,canvas_num=0,play=0;
 	let menu = document.querySelector(".menu_button");
 	let layer_list = document.querySelector("#layer_list"),layer_num = 0;
-	let layer_array=Array(); //id | start_time | end_time | left_layer_mx | right_layer_mx | start_sc | end_sc | center_my;
+	let layer_array=Array(); //id | start_time | end_time | left_layer_mx | right_layer_mx | start_sc | end_sc;
 	let select_id,select_num=Array(1,1);
-	let drow_path = Array(); //id | (x,y) | (x,y) num | color | thick(text) | type; if(text) id , (x,y,width,height), content , color, text_size, text
+	let drow_path = Array(); //        id | (x,y)           | (x,y) num | color | thick(text) | type | start_sc | end_sc; 
+							//if(text) id , (x,y,width,height), content , color,  text_size,    text | start_sc | end_sc;
 	let path_num = 0,drow_path_id = -1;
 	let layer_zindex = Array();
 	let layer_zindex_max = 5;
@@ -20,6 +21,7 @@ window.onload=function(){
 	for(let i=1; i<6;i++) document.querySelector("#movie"+i).addEventListener("click",movie_set);
 	
 	function movie_set(){
+		video_src = "movie/"+this.getAttribute("id")+".mp4";
 		movie.setAttribute("src","movie/"+this.getAttribute("id")+".mp4");
 		document.querySelector("#now_t").innerHTML="00 : 00 : 00 : 00";
 		document.querySelector("#start_t").innerHTML = "00 : 00 : 00 : 00";
@@ -55,6 +57,7 @@ window.onload=function(){
 
 	document.querySelector("#play_b").addEventListener("click",movie_play);
 	document.querySelector("#stop_b").addEventListener("click",movie_stop);
+	document.querySelector("#down_b").addEventListener("click",download);
 
 	function movie_play(){
 		if(movie.getAttribute("src") !== null){
@@ -508,7 +511,7 @@ window.onload=function(){
 						sy = canvasY(e.clientY);
 						drawing = true;
 						drow_path_id++;
-						drow_path.push(Array("#canvas"+canvas_num,Array(1),1,"",1));
+						drow_path.push(Array("#canvas"+canvas_num,Array(1),1,"",1,"",0,endtime));
 					}
 
 					//현재위치 ->새로이동한 곳 선그리기
@@ -577,7 +580,7 @@ window.onload=function(){
 						canvas.height = canvas.offsetHeight;
 						drawing = true;
 						drow_path_id++;
-						drow_path.push(Array("#canvas"+canvas_num,Array(1),1,"",1));
+						drow_path.push(Array("#canvas"+canvas_num,Array(1),1,"",1,"",0,endtime));
 					}
 					//사각형 그리기
 					if(drawing && now_b == "squre"){
@@ -663,6 +666,7 @@ window.onload=function(){
 						let src = document.querySelector(".text_add");
 						src.setAttribute("id","text_s");
 						src.setAttribute("autofocus",true);
+						src.zIndex = 100;
 						x = Number(e.offsetX);
 						y = Number(e.offsetY);
 						src.style.top = y+"px";
@@ -711,7 +715,7 @@ window.onload=function(){
 										case 32 : text_height= 37; break;
 									}
 									drow_path_id++;
-									drow_path.push(Array("#canvas"+canvas_num,Array(x,(y-text_size),parseInt(text_d.style.width),text_height),text_d.value,detail("color"),text_size,"text"));
+									drow_path.push(Array("#canvas"+canvas_num,Array(x,(y-text_size),parseInt(text_d.style.width),text_height),text_d.value,detail("color"),text_size,"text",0,endtime));
 									movie_area.removeChild(text_d);
 									now_b = "";
 									if(!end) terminal("text_again");
@@ -1147,6 +1151,12 @@ window.onload=function(){
 					layer_array[i][6] = et;
 				}
 			}
+			for(let i =0;i < drow_path.length;i++){
+				if("#"+time_layer.parentNode.id.substring(0,time_layer.parentNode.id.length - 6) == drow_path[i][0]){
+					drow_path[i][6] = st;
+					drow_path[i][7] = et;
+				}
+			}
 		}else if(target == "right"){
 			st=et=0;
 			right_bar = document.querySelector("#"+select_layer+"_right");
@@ -1168,6 +1178,12 @@ window.onload=function(){
 					layer_array[i][6] = et;
 				}
 			}
+			
+			for(let i =0;i < drow_path.length;i++){
+				if("#"+time_layer.parentNode.id.substring(0,time_layer.parentNode.id.length - 6) == drow_path[i][0]){
+					drow_path[i][7] = et;
+				}
+			}
 		}else if(target == "center"){
 			st=et=0;
 			x = e.clientX - center_cx;
@@ -1179,7 +1195,11 @@ window.onload=function(){
 			left_layer_mx = mx;
 			right_layer_mx = (810 - (mx + parseInt(time_layer.getBoundingClientRect().width))) > -1 ? (810 - (mx + parseInt(time_layer.getBoundingClientRect().width))) : 0;
 			center_cx = e.clientX;
-
+			for(let i =0;i < drow_path.length;i++){
+				if("#"+time_layer.parentNode.id.substring(0,time_layer.parentNode.id.length - 6) == drow_path[i][0]){
+					drow_path[i][6] = st;
+				}
+			}
 			//시간조정
 			for(let i = 0;i < (left_layer_mx); i++) st += px_time;
 			document.querySelector("#start_t").innerHTML = time_set(st);
@@ -1316,4 +1336,68 @@ window.onload=function(){
 			document.querySelector("#"+layer_array[layer_swap_two][0].substring(0,layer_array[layer_swap_two][0].length - 5)+"_right").style.backgroundColor = "#17AFB1";
 		}
 	});
+
+	function download(){
+		let content = `<!doctype html>
+						<head>
+							<title>BIFF 부산 국제 영화제</title>
+						</head>
+						<body>
+							<div id = "view" style = "position:relative; width: 900px; height: 500px; background-color:#000;">
+								<video src="`+video_src+`" controls style="position: absolute; left: 0; top: 0; width: 100%; height: 100%;></video>`;
+		for(let i=0; i<drow_path.length;i++){
+			let view_img = null;
+			let con = document.querySelector(drow_path[i][0]);
+
+			view_img = document.createElement("img");
+			view_img.width = 900;
+			view_img.height = 500;
+			view_img.src = con.toDataURL();
+			view_img.style = con.style.cssText;
+			
+			view_img.className = "clip";
+			view_img.style.position = "absolute";
+			view_img.style.pointerEvents = "none";
+			view_img.style.left = drow_path[i][1][0]+"px";
+			view_img.style.top = drow_path[i][1][1]+"px";
+			
+			view_img.dataset.start = drow_path[i][6];
+			view_img.dataset.duration = drow_path[i][7];
+			content+=(view_img.outerHTML);
+		}
+		content +=`</div>
+		<script>
+				const video= document.querySelector('#view > video');
+				const clipList = document.querySelectorAll('#view .clip');
+				console.log(clipList);
+				function frame(){
+					requestAnimationFrame(frame);
+					if(clipList){
+						clipList.forEach(x => {
+							let start = parseInt(x.dataset.start);
+							let duration = parseInt(x.dataset.duration);
+							if(start <= video.currentTime && video.currentTime <= start + duration){
+								x.style.visibility = "visible";
+							}else{
+								x.style.visibility = "hidden";
+							}
+						});
+					}
+				}
+				
+				requestAnimationFrame(frame);
+				
+			</script>
+		</body>
+		</html>`;
+		let blob = new Blob([content],{type : "text/html; charset=utf8"});
+		let now = new Date();
+
+		let downBtn = document.createElement("a");
+		downBtn.href = URL.createObjectURL(blob);
+		downBtn.download = "movie-["+String(now)+"].html";
+		document.body.append(downBtn);
+		downBtn.click();
+		downBtn.remove();
+	}
 }
