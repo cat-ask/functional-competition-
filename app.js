@@ -108,17 +108,12 @@ window.onload=function(){
 	document.querySelector("body").addEventListener("click",out);
 	document.querySelector("#alld_b").addEventListener("click",()=>{if(movie.getAttribute("src") == null){alert("동영상을 선택해주세요!"); return false;} canvas_all_del();});
 
-	let out_i=1,id =1,drow_ok;
-	let end=0;
-	let x,y;
-	let now_b="";
+	let out_i=1,id =1,drow_ok,end=0,x,y,now_b = "";
 	
 	function setting(now){
 		if(movie.getAttribute("src") == null){alert("동영상을 선택해주세요!");return false;}
 		style_change("all",18,menu,"#7E7E7E");
-		end = 0;
-		drow_ok = id = out_i = 1;
-		now_b = now;
+		end = 0,drow_ok = id = out_i = 1,now_b = now;
 		terminal("first",now+"_b");
 	}
 
@@ -376,8 +371,6 @@ window.onload=function(){
 			movie_area.onmouseup = (e)=>{
 				if(select_ok && now_b == "select" && select_id !== 0 && canvas_id>-1){
 					//조건 변경
-					document.querySelector("#"+select_id).style.zIndex = layer_zindex[video_num][canvas_id]-1;
-					for (let i=drow_path[video_num].length-1;i>=0;i--)document.querySelector(drow_path[video_num][i][0]).style.zIndex = Number(document.querySelector(drow_path[video_num][i][0]).style.zIndex) + 1;
 					select_ok = 0;
 				}
 			}
@@ -426,8 +419,13 @@ window.onload=function(){
 		movie_area.appendChild(canvas);
 		add_layer("canvas"+canvas_num[video_num]+"_layer","#layer_list");
 		add_layer("layer"+layer_array[video_num].length+"_time","#canvas"+canvas_num[video_num]+"_layer");
-		document.querySelector("#canvas"+canvas_num[video_num]).style.zIndex = layer_zindex[layer_zindex.length-1]+1;
-		layer_zindex[video_num].push(layer_zindex[layer_zindex.length-1]+1);
+		if(canvas_num[video_num] == 1){
+			document.querySelector("#canvas"+canvas_num[video_num]).style.zIndex = 5;
+			layer_zindex[video_num].push(5);
+		}else{
+			document.querySelector("#canvas"+canvas_num[video_num]).style.zIndex = layer_zindex[video_num][layer_zindex[video_num].length-1]+1;
+			layer_zindex[video_num].push(layer_zindex[video_num][layer_zindex[video_num].length-1]+1);
+		}
 	}
 	function drow(){
 		let canvas,ctx,sx,sy,drawing = false,fx,fy,x,y,color = detail("color"),text_size = detail("text"),text_height;
@@ -581,6 +579,7 @@ window.onload=function(){
 			out_i = 0;
 			if(end) {
 				style_change("all",18,menu,"#7E7E7E");
+				for(let i=0; i<layer_array[video_num].length;i++)layer_backcolor((layer_array[video_num][i][0].substring(0,(layer_array[video_num][i][0].length-5))),"#C8C8C8");
 				drow_ok=0;
 				now_b = "";
 				initialization();
@@ -843,9 +842,9 @@ window.onload=function(){
 				sw = drow_path[video_num][canvas_id][1][2];
 				sh = drow_path[video_num][canvas_id][1][3];
 				ctx.fillRect(fx,fy,sw,sh);
-			}else if(drow_path[canvas_id][5] == "text"){
-				tx = drow_path[canvas_id][1][0];
-				ty = drow_path[canvas_id][1][1];
+			}else if(drow_path[video_num][canvas_id][5] == "text"){
+				tx = drow_path[video_num][canvas_id][1][0];
+				ty = drow_path[video_num][canvas_id][1][1];
 				//텍스트
 				ctx.fillStyle = drow_path[video_num][canvas_id][3]; 
 				ctx.font = drow_path[video_num][canvas_id][4]+"px ''";
@@ -857,7 +856,7 @@ window.onload=function(){
 	
 	window.addEventListener("mousemove", e => {
 		if(target == null ) return;
-		let time_layer = document.querySelector("#"+select_layer+"_time");
+		let time_layer = document.querySelector("#"+select_layer+"_time"),play_time = 0;;
 		for(let i=0; i <=drow_path[video_num].length-1; i++){
 			if(layer_array[video_num][i][0] == select_layer+"_time"){
 				left_layer_mx = layer_array[video_num][i][3];
@@ -887,6 +886,10 @@ window.onload=function(){
 					layer_array[video_num][i][3] = left_layer_mx;
 					layer_array[video_num][i][5] = st;
 					layer_array[video_num][i][6] = et;
+					play_time = movie.currentTime;
+					if(play_time < layer_array[video_num][i][5]) document.querySelector("#"+document.querySelector("#"+layer_array[video_num][i][0]).parentNode.id.substring(0,document.querySelector("#"+layer_array[video_num][i][0]).parentNode.id.length - 6)).style.display = "none";
+					if(play_time >= layer_array[video_num][i][5]) document.querySelector("#"+document.querySelector("#"+layer_array[video_num][i][0]).parentNode.id.substring(0,document.querySelector("#"+layer_array[video_num][i][0]).parentNode.id.length - 6)).style.display = "block";
+					if(play_time >= (layer_array[video_num][i][5]+layer_array[video_num][i][6])) document.querySelector("#"+document.querySelector("#"+layer_array[i][0]).parentNode.id.substring(0,document.querySelector("#"+layer_array[video_num][i][0]).parentNode.id.length - 6)).style.display = "none";
 				}
 			}
 			for(let i =0;i < drow_path[video_num].length;i++){
@@ -914,6 +917,10 @@ window.onload=function(){
 					layer_array[video_num][i][2] = time_set(et);
 					layer_array[video_num][i][4] = right_layer_mx;
 					layer_array[video_num][i][6] = et;
+					play_time = movie.currentTime;
+					if(play_time < layer_array[video_num][i][5]) document.querySelector("#"+document.querySelector("#"+layer_array[video_num][i][0]).parentNode.id.substring(0,document.querySelector("#"+layer_array[video_num][i][0]).parentNode.id.length - 6)).style.display = "none";
+					if(play_time >= layer_array[video_num][i][5]) document.querySelector("#"+document.querySelector("#"+layer_array[video_num][i][0]).parentNode.id.substring(0,document.querySelector("#"+layer_array[video_num][i][0]).parentNode.id.length - 6)).style.display = "block";
+					if(play_time >= (layer_array[video_num][i][5]+layer_array[video_num][i][6])) document.querySelector("#"+document.querySelector("#"+layer_array[i][0]).parentNode.id.substring(0,document.querySelector("#"+layer_array[video_num][i][0]).parentNode.id.length - 6)).style.display = "none";
 				}
 			}
 			
@@ -932,6 +939,10 @@ window.onload=function(){
 			for(let i =0;i < drow_path[video_num].length;i++){
 				if("#"+time_layer.parentNode.id.substring(0,time_layer.parentNode.id.length - 6) == drow_path[video_num][i][0]){
 					drow_path[video_num][i][6] = st;
+					play_time = movie.currentTime;
+					if(play_time < layer_array[video_num][i][5]) document.querySelector("#"+document.querySelector("#"+layer_array[video_num][i][0]).parentNode.id.substring(0,document.querySelector("#"+layer_array[video_num][i][0]).parentNode.id.length - 6)).style.display = "none";
+					if(play_time >= layer_array[video_num][i][5]) document.querySelector("#"+document.querySelector("#"+layer_array[video_num][i][0]).parentNode.id.substring(0,document.querySelector("#"+layer_array[video_num][i][0]).parentNode.id.length - 6)).style.display = "block";
+					if(play_time >= (layer_array[video_num][i][5]+layer_array[video_num][i][6])) document.querySelector("#"+document.querySelector("#"+layer_array[i][0]).parentNode.id.substring(0,document.querySelector("#"+layer_array[video_num][i][0]).parentNode.id.length - 6)).style.display = "none";
 				}
 			}
 			//시간조정
@@ -945,13 +956,7 @@ window.onload=function(){
 					layer_array[video_num][i][5] = st;
 				}
 			}
-			for(let i=0; i <=drow_path[video_num].length-1; i++){
-				if(play_time < layer_array[video_num][i][5]) document.querySelector("#"+document.querySelector("#"+layer_array[video_num][i][0]).parentNode.id.substring(0,document.querySelector("#"+layer_array[video_num][i][0]).parentNode.id.length - 6)).style.display = "none";
-				if(play_time >= layer_array[video_num][i][5]) document.querySelector("#"+document.querySelector("#"+layer_array[video_num][i][0]).parentNode.id.substring(0,document.querySelector("#"+layer_array[video_num][i][0]).parentNode.id.length - 6)).style.display = "block";
-				if(play_time >= (layer_array[video_num][i][5]+layer_array[video_num][i][6])) document.querySelector("#"+document.querySelector("#"+layer_array[i][0]).parentNode.id.substring(0,document.querySelector("#"+layer_array[video_num][i][0]).parentNode.id.length - 6)).style.display = "none";
-			}
 		}else if(target == "time_track"){
-			let play_time = 0;
 			x = e.clientX - track_cx;
 			let mx = track_mx + x;
 			mx = mx < 0 ? 0 : mx > (endtime / px_time) ? (endtime / px_time) : mx;
@@ -961,10 +966,11 @@ window.onload=function(){
 			for(let i=0; i<mx;i++) play_time += px_time;
 			movie.currentTime = play_time;
 			document.querySelector("#now_t").innerHTML=time_set(play_time);
+			document.querySelector("#time_track").style.left = mx + "px";
 			for(let i=0; i <=drow_path[video_num].length-1; i++){
 				if(play_time < layer_array[video_num][i][5]) document.querySelector("#"+document.querySelector("#"+layer_array[video_num][i][0]).parentNode.id.substring(0,document.querySelector("#"+layer_array[video_num][i][0]).parentNode.id.length - 6)).style.display = "none";
 				if(play_time >= layer_array[video_num][i][5]) document.querySelector("#"+document.querySelector("#"+layer_array[video_num][i][0]).parentNode.id.substring(0,document.querySelector("#"+layer_array[video_num][i][0]).parentNode.id.length - 6)).style.display = "block";
-				if(play_time >= (layer_array[video_num][i][5]+layer_array[video_num][i][6])) document.querySelector("#"+document.querySelector("#"+layer_array[i][0]).parentNode.id.substring(0,document.querySelector("#"+layer_array[video_num][i][0]).parentNode.id.length - 6)).style.display = "none";
+				if(play_time >= (layer_array[video_num][i][5]+layer_array[video_num][i][6]))document.querySelector("#"+document.querySelector("#"+layer_array[video_num][i][0]).parentNode.id.substring(0,document.querySelector("#"+layer_array[video_num][i][0]).parentNode.id.length - 6)).style.display = "none";
 			}
 		}else if(target == "swap"){
 			//layer swap
