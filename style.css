@@ -12,7 +12,6 @@
 }
 
 #menu{
-	margin-top: 50px;
 	width: 170px;
 	display: inline-block;
 	position: relative;
@@ -31,31 +30,12 @@
 	font-size: 15px;
 }
 
-.menu_button:hover{
-	background-color: #C8C8C8;
-}
-
-#menu_css_design{
-	width: 10px;
-	height: 449px;
+.checkbox{
 	position: absolute;
 	top: 0;
-	left: 0;
-	background-color: #585858;
+	left: -20px;
 }
 
-#menu_title{
-	width: 130px;
-	height:35px;
-	background-color: #585858;
-	position: absolute;
-	top: -50px;
-	left: 0;
-	color: #FFFFFF;
-	text-align:center;
-	padding-top: 15px;
-	font-weight: bold;
-}
 
 #play_video{
 	position: absolute;
@@ -204,12 +184,12 @@
 	cursor: w-resize;
 }
 
-#time_track{
+#track{
 	width: 2px;
-	height: 130%;
+	height: calc(100% + 10px);
 	background-color: #CD0000;
 	position: absolute;
 	left: -2px;
-	top: -15%;
+	top: -5px;
 	z-index: 100;
 }
