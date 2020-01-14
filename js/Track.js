@@ -24,8 +24,8 @@ class Track{
 
     timesetR(id){
         if(id){
-            document.querySelector("#start_t").innerHTML = this.changetime(Tool.drow_path[View.video_num][id]['start_t']);
-            document.querySelector("#keep_t").innerHTML = this.changetime(Tool.drow_path[View.video_num][id]['keep_t']);
+            document.querySelector("#start_t").innerHTML = this.changetime(Tool.drow_path[View.video_num][id]['add'][0]['start_t']);
+            document.querySelector("#keep_t").innerHTML = this.changetime(Tool.drow_path[View.video_num][id]['add'][0]['keep_t']);
         }
     }
 
@@ -97,10 +97,13 @@ class Track{
 
     track_out(id){
         if(!id) return false;
-        if(document.querySelector("#"+Tool.drow_path[View.video_num][id]['id'])){
-            if(Track.now_t < Tool.drow_path[View.video_num][id]['start_t']) document.querySelector("#"+Tool.drow_path[View.video_num][id]['id']).style.display = "none";
-            if(Track.now_t >= Tool.drow_path[View.video_num][id]['start_t']) document.querySelector("#"+Tool.drow_path[View.video_num][id]['id']).style.display = "block";
-            if(Track.now_t >= (Tool.drow_path[View.video_num][id]['start_t'] + Tool.drow_path[View.video_num][id]['keep_t'])) document.querySelector("#"+Tool.drow_path[View.video_num][id]['id']).style.display = "none";
+        for(let i = 0; i < Tool.drow_path[View.video_num][id]['add'].length;i++){
+            if(document.querySelector("#"+Tool.drow_path[View.video_num][id]['add'][i]['id'])){
+                console.log(Tool.drow_path[View.video_num][id]['add']);
+                if(Track.now_t < Tool.drow_path[View.video_num][id]['add'][0]['start_t']) document.querySelector("#"+Tool.drow_path[View.video_num][id]['add'][i]['id']).style.display = "none";
+                if(Track.now_t >= Tool.drow_path[View.video_num][id]['add'][0]['start_t']) document.querySelector("#"+Tool.drow_path[View.video_num][id]['add'][i]['id']).style.display = "block";
+                if(Track.now_t >= (Tool.drow_path[View.video_num][id]['add'][0]['start_t'] + Tool.drow_path[View.video_num][id]['add'][0]['keep_t'])) document.querySelector("#"+Tool.drow_path[View.video_num][id]['add'][i]['id']).style.display = "none";
+            }
         }
     }
 

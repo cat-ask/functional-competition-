@@ -7,6 +7,7 @@ class Tool{
     static select_id = null;
     static select = false;
     static canvas_list = {"1":{},"2":{},"3":{},"4":{},"5":{}}
+    static select_canvas = null;
     constructor(drow_area,app){
         this.drowing = false;
         this.app = app;
@@ -64,18 +65,21 @@ class Tool{
     }
 
     createCanvas(){
-        if(!document.querySelector("#merge_b") && !document.querySelector("#reset_b")){
-            let merge = document.createElement("button");
-            merge.classList.add("menu_button");
-            merge.setAttribute("id","merge_b");
-            document.querySelector("#menu").append(merge);
-            document.querySelector("#merge_b").innerHTML = "병합하기";
+        if(!document.querySelector("#reset_b")){
             let reset = document.createElement("button");
             reset.classList.add("menu_button");
             reset.setAttribute("id","reset_b");
             document.querySelector("#menu").append(reset);
             document.querySelector("#reset_b").innerHTML = "초기화";
             document.querySelector("#reset_b").addEventListener("click",()=>{this.view.All_reset();});
+        }
+        if(!document.querySelector("#merge_b")){
+            let merge = document.createElement("button");
+            merge.classList.add("menu_button");
+            merge.setAttribute("id","merge_b");
+            document.querySelector("#menu").insertBefore(merge,document.querySelector("#reset_b"));
+            document.querySelector("#merge_b").innerHTML = "병합하기";
+            document.querySelector("#merge_b").addEventListener("click",()=>{this.view.Merge_canvas();});
         }
         let canvas = document.createElement("canvas");
         Tool.canvas_num[View.video_num]++;
@@ -87,7 +91,7 @@ class Tool{
         canvas.width = canvas.offsetWidth;
         canvas.height = canvas.offsetHeight;
         canvas.style.zIndex = Tool.zIndex[View.video_num];
-        Tool.drow_path[View.video_num][Object.keys(Tool.drow_path[View.video_num]).length + 1] = {'id':"canvas"+Tool.canvas_num[View.video_num],'zIndex':Tool.zIndex[View.video_num]}
+        Tool.drow_path[View.video_num][Object.keys(Tool.drow_path[View.video_num]).length + 1] = {'id':"canvas"+Tool.canvas_num[View.video_num],'zIndex':Tool.zIndex[View.video_num],'add':Tool.canvas_num[View.video_num]}
         this.track.addarray("layer","layer"+Tool.canvas_num[View.video_num],"#layer_list");
         this.track.addarray("layer_time","layer_time"+Tool.canvas_num[View.video_num],"#layer"+Tool.canvas_num[View.video_num],Object.keys(Tool.drow_path[View.video_num]).length);
         this.track.addarray("layer_right","layer_right"+Tool.canvas_num[View.video_num],"#layer_time"+Tool.canvas_num[View.video_num]);

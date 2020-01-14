@@ -4,7 +4,7 @@ class Squre extends Tool{
         if(this.drowing == false && Tool.status == 2){
             this.setdetail();
             this.drowing = true;
-            this.id = Tool.canvas_num[View.video_num];
+            this.id = Tool.drow_path[View.video_num][Object.keys(Tool.drow_path[View.video_num]).length]['add'];
             this.canvas = document.querySelector("#canvas"+this.id);
             this.ctx = this.canvas.getContext("2d");
             this.ctx.strokeStyle = this.color;
@@ -36,7 +36,7 @@ class Squre extends Tool{
                 this.sh = this.sh < 0 ? -(this.y - this.fy) : (this.y - this.fy);
                 if((this.x - this.fx) < 0) this.fx += (this.x - this.fx);
                 if((this.y - this.fy) < 0) this.fy += (this.y - this.fy);
-                Tool.drow_path[View.video_num][Object.keys(Tool.drow_path[View.video_num]).length]={"video":View.video_num,"number":Tool.canvas_num[View.video_num],"id":this.name,"path":{"x":this.fx,"y":this.fy,"width":this.sw,"height":this.sh},"color":this.color,"type":"squre","start_t":0,"keep_t":Track.end_t,"add":[this.id]};
+                Tool.drow_path[View.video_num][Object.keys(Tool.drow_path[View.video_num]).length]={"add":[{"video":View.video_num,"number":this.id,"id":this.name,"path":{"x":this.fx,"y":this.fy,"width":this.sw,"height":this.sh},"color":this.color,"type":"squre","start_t":0,"keep_t":Track.end_t}]};
             }
         });
     }

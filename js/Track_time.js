@@ -4,7 +4,6 @@ class Track_time extends Track{
         if(Track.target == "track" || (Track.target !== null && Track.target_id)){
             this.cx = e.clientX;
             if((Track.target !== null && Track.target_id)){
-                console.log(Track.layer_array[View.video_num][Track.target_id]);
                 this.left_m = Track.layer_array[View.video_num][Track.target_id]['left_m'];
                 this.right_m = Track.layer_array[View.video_num][Track.target_id]['right_m'];
                 this.target = document.querySelector("#"+Track.layer_array[View.video_num][Track.target_id]['id']);
@@ -32,8 +31,8 @@ class Track_time extends Track{
                 this.cx = e.clientX;
                 this.timepx((this.left_m),"st");
                 this.timepx((810 - (this.left_m + this.right_m)),"et");
-                Tool.drow_path[View.video_num][Track.target_id]['start_t'] = this.st;
-                Tool.drow_path[View.video_num][Track.target_id]['keep_t'] = this.et;
+                Tool.drow_path[View.video_num][Track.target_id]['add'][0]['start_t'] = this.st;
+                Tool.drow_path[View.video_num][Track.target_id]['add'][0]['keep_t'] = this.et;
                 Track.layer_array[View.video_num][Track.target_id]['left_m'] = this.left_m;
                 Track.layer_array[View.video_num][Track.target_id]['right_m'] = this.right_m;
                 this.timesetR(Track.target_id);
@@ -48,7 +47,7 @@ class Track_time extends Track{
                 this.target.style.right = this.right_m + "px";
                 this.target.style.width = (810 - (this.right_m + this.left_m)) > 810 ? "810px" : (810 - (this.right_m + this.left_m)) < 25 ? "25px" : (810 - (this.right_m + this.left_m))+"px";
                 this.timepx((810 - (this.left_m + this.right_m)),"et");
-                Tool.drow_path[View.video_num][Track.target_id]['keep_t'] = this.et;
+                Tool.drow_path[View.video_num][Track.target_id]['add'][0]['keep_t'] = this.et;
                 this.timesetR(Track.target_id);
                 this.cx = e.clientX;
                 Track.layer_array[View.video_num][Track.target_id]['right_m'] = this.right_m;
@@ -65,7 +64,7 @@ class Track_time extends Track{
                 Track.layer_array[View.video_num][Track.target_id]['left_m'] = this.left_m;
                 Track.layer_array[View.video_num][Track.target_id]['right_m'] = this.right_m;
                 this.timepx(this.left_m,"st");
-                Tool.drow_path[View.video_num][Track.target_id]['start_t'] = this.st;
+                Tool.drow_path[View.video_num][Track.target_id]['add'][0]['start_t'] = this.st;
                 this.timesetR(Track.target_id);
                 this.cx = e.clientX;
                 this.track_out(Track.target_id);

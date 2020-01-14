@@ -16,8 +16,6 @@ class View{
                 this.menu_changecolor("all","#7F7F7F");
                 document.querySelector("#start_t").innerHTML = "00 : 00 : 00 : 00";
                 document.querySelector("#keep_t").innerHTML = "00 : 00 : 00 : 00";
-                if(document.querySelector("#reset_b")) document.querySelector("#reset_b").remove();
-                if(document.querySelector("#merge_b")) document.querySelector("#merge_b").remove();
                 if(View.video_num && Object.keys(Tool.drow_path[View.video_num]).length !== null){
                     for(let i = 1; i <=Object.keys(Tool.drow_path[View.video_num]).length; i++){
                         if(document.querySelector("#"+Tool.drow_path[View.video_num][i]['id'])) document.querySelector("#"+Tool.drow_path[View.video_num][i]['id']).remove();
@@ -34,6 +32,16 @@ class View{
                 this.track.addarray("layer","movie_layer","#layer_list");
                 View.video_num = id.substring(5,6);
                 this.movie.src = "movie/"+id+".mp4";
+                if(document.querySelector("#reset_b") && Object.keys(Tool.drow_path[1]).length == 0 && Object.keys(Tool.drow_path[2]).length == 0 && Object.keys(Tool.drow_path[3]).length == 0 && Object.keys(Tool.drow_path[4]).length == 0 && Object.keys(Tool.drow_path[5]).length == 0) document.querySelector("#reset_b").remove();
+                if(document.querySelector("#merge_b") && View.video_num && Object.keys(Tool.drow_path[View.video_num]).length == 0) document.querySelector("#merge_b").remove();
+                else if(!document.querySelector("#merge_b") && View.video_num && Object.keys(Tool.drow_path[View.video_num]).length > 0){
+                    let merge = document.createElement("button");
+                    merge.classList.add("menu_button");
+                    merge.setAttribute("id","merge_b");
+                    document.querySelector("#menu").insertBefore(merge,document.querySelector("#reset_b"));
+                    document.querySelector("#merge_b").innerHTML = "병합하기";
+                    document.querySelector("#merge_b").addEventListener("click",()=>{this.Merge_canvas();});
+                }
                 if(View.video_num && Object.keys(Tool.drow_path[View.video_num]).length !== null){
                     for(let i = 1; i<= Object.keys(Tool.drow_path[View.video_num]).length; i++) {
                         console.log(i);
@@ -50,7 +58,7 @@ class View{
                         this.track.addarray('layer_right','layer_right'+id,'#layer_time'+id,i,"reset");
                         this.track.addarray('layer_center','layer_center'+id,'#layer_time'+id,i,"reset");
                         this.track.addarray('layer_left','layer_left'+id,'#layer_time'+id,i,"reset");
-                        document.querySelector("#layer_time"+id).style.width = (810 - (Track.layer_array[View.video_num][i]['left_m'] + Track.layer_array[View.video_num][id]['right_m'])) + "px";
+                        document.querySelector("#layer_time"+id).style.width = (810 - (Track.layer_array[View.video_num][i]['left_m'] + Track.layer_array[View.video_num][i]['right_m'])) + "px";
                         document.querySelector("#layer_time"+id).style.left = Track.layer_array[View.video_num][i]['left_m']+"px";
                         document.querySelector("#layer_time"+id).style.right = Track.layer_array[View.video_num][i]['right_m']+"px";
                         this.track.track_out(i);
@@ -61,6 +69,7 @@ class View{
                         merge.setAttribute("id","merge_b");
                         document.querySelector("#menu").append(merge);
                         document.querySelector("#merge_b").innerHTML = "병합하기";
+                        document.querySelector("#merge_b").addEventListener("click",()=>{this.Merge_canvas();});
                         let reset = document.createElement("button");
                         reset.classList.add("menu_button");
                         reset.setAttribute("id","reset_b");
@@ -100,7 +109,7 @@ class View{
     frame(){
         Track.now_t = this.movie.currentTime;
         this.track.timesetL();
-        if(View.video_num && Tool.drow_path[View.video_num].length) for(let i = 1;i <= Object.keys(Tool.drow_path[View.video_num]).length; i++) this.track.track_out(i);
+        if(View.video_num && Object.keys(Tool.drow_path[View.video_num]).length) for(let i = 1;i <= Object.keys(Tool.drow_path[View.video_num]).length; i++) this.track.track_out(i);
         document.querySelector("#track").style.left = (Track.now_t / Track.px_time)+"px";
         requestAnimationFrame(()=>{
             this.frame();
@@ -123,6 +132,7 @@ class View{
         this.menu_changecolor("all","#7F7F7F");
         Track.target_id = null;
         Tool.select_id = null;
+        document.querySelectorAll(".canvas").forEach(canvas =>{if(document.querySelector("#"+canvas.id)) document.querySelector("#"+canvas.id).remove();});
         Tool.status = null;
         Tool.select = false;
         Tool.canvas_num[View.video_num] = 0;
@@ -130,16 +140,21 @@ class View{
         Track.target = null;
         Track.layer_array[View.video_num] = {};
         Tool.drow_path[View.video_num]={};
-        if(document.querySelector("#reset_b")) document.querySelector("#reset_b").remove();
+        if(document.querySelector("#reset_b") && Object.keys(Tool.drow_path[1]).length == 0 && Object.keys(Tool.drow_path[2]).length == 0 && Object.keys(Tool.drow_path[3]).length == 0 && Object.keys(Tool.drow_path[4]).length == 0 && Object.keys(Tool.drow_path[5]).length == 0) document.querySelector("#reset_b").remove();
         if(document.querySelector("#merge_b")) document.querySelector("#merge_b").remove();
     }
 
     S_selete(){
         this.menu_changecolor("all","#7F7F7F");
+        let id = null;
         let for_n = Tool.drow_path[View.video_num][Tool.select_id]['add'].length;
-        for(let i = 0; i<for_n;i++){
-            let id = Tool.drow_path[View.video_num][Tool.select_id]['add'][i];
-            document.querySelector("#"+Tool.drow_path[View.video_num][id]['id']).remove();
+        for(let g = 0; g<for_n;g++){
+            for(let k = 1; k<=Object.keys(Tool.drow_path[View.video_num]).length;k++){
+                for(let j=0;j<Tool.drow_path[View.video_num][k]['add'].length;j++){
+                    if(Tool.drow_path[View.video_num][k]['add'][j]['id'] == "canvas"+Tool.drow_path[View.video_num][Tool.select_id]['add'][g]['number']) id = k;
+                }
+            }
+            document.querySelector("#"+Tool.drow_path[View.video_num][id]['add'][g]['id']).remove();
             document.querySelector("#"+Track.layer_array[View.video_num][id]['id']).remove();
             document.querySelector("#layer"+Track.layer_array[View.video_num][id]['num']).remove();
             for(let i = id; i<=Object.keys(Tool.drow_path[View.video_num]).length; i++){
@@ -160,6 +175,8 @@ class View{
         Tool.select = false;
         Tool.drow = 0;
         Track.target = null;
+        if(document.querySelector("#merge_b") && Object.keys(Tool.drow_path[View.video_num]).length == 0) document.querySelector("#merge_b").remove();
+        if(document.querySelector("#reset_b") && Object.keys(Tool.drow_path[1]).length == 0 && Object.keys(Tool.drow_path[2]).length == 0 && Object.keys(Tool.drow_path[3]).length == 0 && Object.keys(Tool.drow_path[4]).length == 0 && Object.keys(Tool.drow_path[5]).length == 0) document.querySelector("#reset_b").remove();
     }
 
     All_reset(){
@@ -175,6 +192,7 @@ class View{
             Track.layer_array[i] = {};
             Tool.drow_path[i]= {};
         }
+        document.querySelectorAll(".canvas").forEach(canvas =>{if(document.querySelector("#"+canvas.id)) document.querySelector("#"+canvas.id).remove();});
         this.menu_changecolor("all","#7F7F7F");
         Track.target_id = null;
         Tool.select_id = null;
@@ -194,6 +212,53 @@ class View{
         document.querySelector("#start_t").innerHTML = "00 : 00 : 00 : 00";
         document.querySelector("#keep_t").innerHTML = "00 : 00 : 00 : 00";
     }
+
+    Merge_canvas(){
+        let checking = null;
+        document.querySelectorAll(".checkbox").forEach(check =>{
+            if(check.checked){
+                if(checking == null){
+                    checking = check.value;
+                    document.querySelector("#"+check.id).setAttribute("checked",false);
+                }else{
+                    let id = check.value;
+                    for(let i = 0; i< Tool.drow_path[View.video_num][check.value]['add'].length; i++){
+                        console.log(Tool.drow_path[View.video_num][check.value]['add'][i],checking,Tool.drow_path[View.video_num][checking]['add']);
+                        Tool.drow_path[View.video_num][checking]['add'].push(Tool.drow_path[View.video_num][check.value]['add'][i]);
+                        if(Tool.drow_path[View.video_num][checking]['add'][0]['start_t'] > Tool.drow_path[View.video_num][check.value]['add'][i]['start_t']){
+                            Track.layer_array[View.video_num][checking]['start_t'] = Tool.drow_path[View.video_num][check.value]['add'][i]['start_t'];
+                            Tool.drow_path[View.video_num][checking]['add'][0]['start_t'] = Tool.drow_path[View.video_num][check.value]['add'][i]['start_t'];
+                            Track.layer_array[View.video_num][checking]['left_m'] = Track.layer_array[View.video_num][check.value]['left_m'];
+                        }
+                        if(Tool.drow_path[View.video_num][checking]['add'][0]['start_t'] + Tool.drow_path[View.video_num][checking]['add'][0]['keep_t'] < Tool.drow_path[View.video_num][check.value]['add'][i]['start_t'] + Tool.drow_path[View.video_num][check.value]['add'][i]['keep_t']){
+                            Track.layer_array[View.video_num][checking]['keep_t'] = (Tool.drow_path[View.video_num][check.value]['add'][i]['start_t'] + Tool.drow_path[View.video_num][check.value]['add'][i]['keep_t']) - Tool.drow_path[View.video_num][checking]['add'][0]['start_t'];
+                            Tool.drow_path[View.video_num][checking]['add'][0]['keep_t'] = (Tool.drow_path[View.video_num][check.value]['add'][i]['start_t'] + Tool.drow_path[View.video_num][check.value]['add'][i]['keep_t']) - Tool.drow_path[View.video_num][checking]['add'][0]['start_t'];
+                            Track.layer_array[View.video_num][checking]['right_m'] = Track.layer_array[View.video_num][check.value]['right_m'];
+                        }
+                    }
+                    let for_n = Tool.drow_path[View.video_num][check.value]['add'].length;
+                    for(let g = 0; g<for_n;g++){
+                        for(let i = id; i<=Object.keys(Tool.drow_path[View.video_num]).length; i++){
+                            i = Number(i);
+                            if(i !== Object.keys(Tool.drow_path[View.video_num]).length){
+                                Tool.drow_path[View.video_num][i] = Tool.drow_path[View.video_num][i+1];
+                                Track.layer_array[View.video_num][i] = Track.layer_array[View.video_num][i+1];
+                                document.querySelector("#"+Track.layer_array[View.video_num][i]['id']).onclick = ()=>{this.track.layer_click(i)}
+                            }
+                            else{
+                                document.querySelector("#"+Track.layer_array[View.video_num][id]['id']).remove();
+                                document.querySelector("#layer"+Track.layer_array[View.video_num][id]['num']).remove();
+                                delete Tool.drow_path[View.video_num][i];
+                                delete Track.layer_array[View.video_num][i];
+                            }
+                        }
+                    }
+                    document.querySelector("#"+check.id).remove();       
+                }
+            }
+        });
+    }
+
     //canvas
     canvas_reset(type,color,x,y){
         if(View.video_num && Object.keys(Tool.drow_path[View.video_num]).length){
@@ -214,3 +279,17 @@ class View{
 
     menu_changecolor(id,color){document.querySelectorAll(".menu_button").forEach(menu_id =>{ if(id == "all" || menu_id.id == id) document.querySelector("#"+menu_id.id).style.backgroundColor = color; });}
 }
+//       *           
+//      / \           
+//     /   \          
+//    /     \           
+//   /\     /\       
+//  /  \   /  \        
+// /    \ /    \    
+// \    / \    /   
+//  \  /   \  /    
+//   \/     \/         
+//    \     /         
+//     \   /       
+//      \ /      
+//       *       
